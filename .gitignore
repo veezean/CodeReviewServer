@@ -1,0 +1,41 @@
+## 定义需要git提交时排除掉的文件列表规则
+
+### Spring Boot ###
+/target/
+/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+gen/
+
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### LOGS ###
+logs/
+*.log
+
+
+### Mac OS ###
+.DS_Store
+
+### VS CODE ###
+.vscode/
