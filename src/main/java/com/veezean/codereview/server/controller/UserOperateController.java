@@ -1,11 +1,8 @@
 package com.veezean.codereview.server.controller;
 
-import com.veezean.codereview.server.entity.CommentEntity;
-import com.veezean.codereview.server.entity.ProjectEntity;
 import com.veezean.codereview.server.model.Comment;
 import com.veezean.codereview.server.model.CommitComment;
 import com.veezean.codereview.server.model.Response;
-import com.veezean.codereview.server.repository.CommentRepository;
 import com.veezean.codereview.server.service.CommentService;
 import com.veezean.codereview.server.service.ProjectService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,20 +25,6 @@ public class UserOperateController {
     private ProjectService projectService;
     @Autowired
     private CommentService commentService;
-
-    @GetMapping("/queryUserBindedProjects")
-    public Response<List<ProjectEntity>> queryUserBindedProjects(@RequestParam("userId") String userId) {
-        List<ProjectEntity> projectEntities = projectService.queryUserBindedProjects(userId);
-        return Response.simpleSuccessResponse(projectEntities);
-    }
-
-    @GetMapping("/queryProjectComments")
-    public Response<List<Comment>> queryProjectComments(@RequestParam("projectKey") String projectKey, @RequestParam(
-            "filterType")int filterType, @RequestParam("currentUser") String currentUser) {
-        log.info("收到查询评审信息请求：{}", projectKey);
-        List<Comment> commentEntities = commentService.queryCommentsByProject(projectKey, filterType, currentUser);
-        return Response.simpleSuccessResponse(commentEntities);
-    }
 
     @PostMapping("/commitComments")
     public Response<String> commitComments(@RequestBody CommitComment commitComment) {
