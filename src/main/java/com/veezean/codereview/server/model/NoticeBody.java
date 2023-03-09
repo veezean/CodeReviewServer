@@ -6,10 +6,9 @@ import lombok.Data;
  * <类功能简要描述>
  *
  * @author Wang Weiren
- * @since 2023/2/25
+ * @since 2023/3/7
  */
 @Data
-public class ProjectBaseInfo {
-    private Long projectId;
-    private String projectName;
+public class NoticeBody {
+    private String msg;
 }

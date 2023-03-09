@@ -1,6 +1,5 @@
 package com.veezean.codereview.server.erupt;
 
-import cn.hutool.core.util.RandomUtil;
 import com.veezean.codereview.server.entity.CommentEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,7 +29,7 @@ public class CommentDataProxy implements DataProxy<CommentEntity> {
         // 点击新增按钮提交请求后的预处理操作
 
         // 当前时间作为评审记录添加时间
-        commentEntity.setReviewTime(new Date());
+        commentEntity.setReviewDate(new Date());
     }
 
     @Override
@@ -74,8 +73,8 @@ public class CommentDataProxy implements DataProxy<CommentEntity> {
         // 新增窗口打开的时候的初始化操作
 
         String currentAccount = eruptUserService.getCurrentEruptUser().getAccount();
-        commentEntity.setCommitUser(currentAccount);
-        commentEntity.setIdentifier(RandomUtil.randomLong());
+        commentEntity.setReviewer(currentAccount);
+        commentEntity.setIdentifier(String.valueOf(System.currentTimeMillis()));
     }
 
     @Override
