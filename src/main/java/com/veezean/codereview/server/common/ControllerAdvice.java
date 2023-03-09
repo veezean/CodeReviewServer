@@ -1,6 +1,6 @@
 package com.veezean.codereview.server.common;
 
-import com.veezean.codereview.server.model.BaseResponse;
+import com.veezean.codereview.server.model.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,10 +23,10 @@ public class ControllerAdvice {
      * @return 响应信息
      */
     @ExceptionHandler(CodeReviewException.class)
-    public BaseResponse<String> commonExceptionHandler(CodeReviewException exception) {
+    public Response<String> commonExceptionHandler(CodeReviewException exception) {
         log.error("commonExceptionHandler() IN. ", exception);
 
-        return BaseResponse.simpleFailResponse(-1, exception.getMessage());
+        return Response.simpleFailResponse(-1, exception.getMessage());
     }
 
     /**
@@ -36,9 +36,9 @@ public class ControllerAdvice {
      * @return 响应信息
      */
     @ExceptionHandler(Exception.class)
-    public BaseResponse<String> uncatchedAllExceptionHandler(Exception exception) {
+    public Response<String> uncatchedAllExceptionHandler(Exception exception) {
         log.error("uncatchedAllExceptionHandler() IN. ", exception);
-        return BaseResponse.simpleFailResponse(-1, exception.getMessage());
+        return Response.simpleFailResponse(-1, exception.getMessage());
     }
 
 }

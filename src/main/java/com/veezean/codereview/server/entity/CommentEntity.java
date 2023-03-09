@@ -1,24 +1,17 @@
 package com.veezean.codereview.server.entity;
 
-import com.veezean.codereview.server.erupt.CommentDataProxy;
-import com.veezean.codereview.server.erupt.ConfirmCommentHandler;
-import com.veezean.codereview.server.erupt.UserChoiceFetchHandler;
+import com.veezean.codereview.server.erupt.*;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import xyz.erupt.annotation.Erupt;
 import xyz.erupt.annotation.EruptField;
+import xyz.erupt.annotation.expr.ExprBool;
 import xyz.erupt.annotation.sub_erupt.Power;
 import xyz.erupt.annotation.sub_erupt.RowOperation;
-import xyz.erupt.annotation.sub_field.Edit;
-import xyz.erupt.annotation.sub_field.EditType;
-import xyz.erupt.annotation.sub_field.View;
-import xyz.erupt.annotation.sub_field.ViewType;
-import xyz.erupt.annotation.sub_field.sub_edit.ChoiceType;
-import xyz.erupt.annotation.sub_field.sub_edit.CodeEditorType;
-import xyz.erupt.annotation.sub_field.sub_edit.ReferenceTableType;
-import xyz.erupt.annotation.sub_field.sub_edit.Search;
+import xyz.erupt.annotation.sub_field.*;
+import xyz.erupt.annotation.sub_field.sub_edit.*;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -36,9 +29,10 @@ import java.util.Date;
 @Erupt(name = "评审意见",
         rowOperation = {
                 @RowOperation(
-                        title = "确认",
+                        title = "意见确认",
                         mode = RowOperation.Mode.SINGLE,
-                        eruptClass = CommentEntity.class,
+                        show = @ExprBool(params = "confirmButton", exprHandler = CommentFieldRenderHandler.class),
+                        eruptClass = CommentConfirmModel.class,
                         operationParam = "confirm",
                         operationHandler = ConfirmCommentHandler.class)
         },
@@ -53,10 +47,11 @@ public class CommentEntity {
     private Long id;
 
     @EruptField(
-            views = @View(title = "评审意见编码"),
-            edit = @Edit(title = "评审意见编码", show = false)
+            views = @View(title = "唯一ID"),
+            edit = @Edit(title = "唯一ID", readonly = @Readonly,
+                    ifRender = @ExprBool(params = "identifier", exprHandler = CommentFieldRenderHandler.class))
     )
-    private long identifier;
+    private String identifier;
 
     @ManyToOne
     @EruptField(
@@ -68,35 +63,40 @@ public class CommentEntity {
     )
     private ProjectEntity project;
 
-
-    @EruptField(
-            views = @View(title = "代码路径"),
-            edit = @Edit(title = "代码路径")
-    )
-    private String filePath;
-
     /**
      * start ~ end的格式，用于显示 运算的时候，行号是从0计算的，因此显示的时候，start和end在实际下标上+1
      */
     @EruptField(
             views = @View(title = "代码行号范围"),
-            edit = @Edit(title = "代码行号范围")
+            edit = @Edit(title = "代码行号范围", readonly = @Readonly(add = false, edit = true))
     )
     private String lineRange;
 
     @EruptField(
+            views = @View(title = "代码路径"),
+            edit = @Edit(title = "代码路径",
+                    type = EditType.INPUT,
+                    inputType = @InputType(fullSpan = true),
+                    readonly = @Readonly(add = false, edit = true))
+    )
+    private String filePath;
+
+    @EruptField(
             views = @View(title = "代码片段",
-            type = ViewType.CODE),
+                    type = ViewType.CODE),
             edit = @Edit(title = "代码片段",
+                    readonly = @Readonly(add = false),
                     type = EditType.CODE_EDITOR,
                     codeEditType = @CodeEditorType(language = "TEXT")
             )
     )
+    @Column(columnDefinition = "text")
     private String content;
 
     @Transient //由于该字段不需要持久化，所以使用该注解修饰
     @EruptField(
-            edit = @Edit(title = "评审意见信息", type = EditType.DIVIDE)
+            edit = @Edit(title = "评审意见信息",
+                    type = EditType.DIVIDE)
     )
     private String reviewDivide;
 
@@ -117,24 +117,29 @@ public class CommentEntity {
                             fetchHandler = UserChoiceFetchHandler.class
                     ))
     )
-    private String commitUser;
+    private String reviewer;
 
     @EruptField(
             views = @View(title = "评审时间"),
             edit = @Edit(
                     title = "评审时间",
-                    show = false
+                    type = EditType.DATE,
+                    dateType = @DateType(type = DateType.Type.DATE_TIME),
+                    readonly = @Readonly(params = "reviewTime", exprHandler = CommentEditReadonlyHandler.class),
+                    ifRender = @ExprBool(params = "reviewTime", exprHandler = CommentFieldRenderHandler.class)
             )
     )
-    private Date reviewTime;
+    private Date reviewDate;
 
     @EruptField(
             views = @View(title = "评审意见"),
             edit = @Edit(title = "评审意见",
                     notNull = true,
+                    readonly = @Readonly(params = "comments", exprHandler = CommentEditReadonlyHandler.class),
                     type = EditType.TEXTAREA
             )
     )
+    @Column(columnDefinition = "text")
     private String comments;
 
     @Transient //由于该字段不需要持久化，所以使用该注解修饰
@@ -164,27 +169,49 @@ public class CommentEntity {
     private String confirmer;
 
     @EruptField(
+            views = @View(title = "确认结果"),
+            edit = @Edit(
+                    title = "确认结果",
+                    ifRender = @ExprBool(params = "confirmResult", exprHandler = CommentFieldRenderHandler.class),
+                    readonly = @Readonly(params = "confirmResult", exprHandler = CommentEditReadonlyHandler.class)
+            )
+    )
+    private String confirmResult; // 确认结果， 未确认，已修改，待修改，拒绝
+
+    @EruptField(
             views = @View(title = "意见确认时间"),
             edit = @Edit(
                     title = "意见确认时间",
-                    show = false
+                    type = EditType.DATE,
+                    dateType = @DateType(type = DateType.Type.DATE_TIME),
+                    ifRender = @ExprBool(params = "confirmTime", exprHandler = CommentFieldRenderHandler.class),
+                    readonly = @Readonly(params = "confirmTime", exprHandler = CommentEditReadonlyHandler.class)
             )
     )
-    private Date confirmTime;
-
-    private String confirmResult; // 确认结果， 未确认，已修改，待修改，拒绝
+    private Date confirmDate;
 
     @EruptField(
             views = @View(title = "确认说明"),
             edit = @Edit(title = "确认说明",
-            type = EditType.TEXTAREA)
+                    readonly = @Readonly(params = "confirmNotes", exprHandler = CommentEditReadonlyHandler.class),
+                    ifRender = @ExprBool(params = "confirmNotes", exprHandler = CommentFieldRenderHandler.class),
+                    type = EditType.TEXTAREA)
     )
+    @Column(columnDefinition = "text")
     private String confirmNotes; // 确认备注
+
+    @Transient //由于该字段不需要持久化，所以使用该注解修饰
+    @EruptField(
+            edit = @Edit(title = "其它补充信息", type = EditType.DIVIDE)
+    )
+    private String additionalDivide;
 
     @EruptField(
             views = @View(title = "记录提交时间"),
             edit = @Edit(title = "记录提交时间",
-                    show = false)
+                    type = EditType.DATE,
+                    dateType = @DateType(type = DateType.Type.DATE_TIME),
+                    ifRender = @ExprBool(params = "confirmNotes", exprHandler = CommentFieldRenderHandler.class))
     )
     @CreatedDate
     private Date createTime;
@@ -193,9 +220,12 @@ public class CommentEntity {
             views = @View(title = "最后更新时间"),
             edit = @Edit(
                     title = "最后更新时间",
-                    show = false
+                    type = EditType.DATE,
+                    dateType = @DateType(type = DateType.Type.DATE_TIME),
+                    ifRender = @ExprBool(params = "confirmNotes", exprHandler = CommentFieldRenderHandler.class)
             )
     )
     @LastModifiedDate
     private Date updateTime;
+
 }
