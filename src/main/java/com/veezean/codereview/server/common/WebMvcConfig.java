@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /**
  * <类功能简要描述>
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2023/3/5
  */
 @Configuration

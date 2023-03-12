@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * controller通用的最外层异常捕获与处理逻辑，响应外部统一的错误响应格式
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2020/9/9
  */
 @org.springframework.web.bind.annotation.ControllerAdvice

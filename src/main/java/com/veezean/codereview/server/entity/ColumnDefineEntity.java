@@ -1,28 +1,24 @@
 package com.veezean.codereview.server.entity;
 
 import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
 import xyz.erupt.annotation.Erupt;
 import xyz.erupt.annotation.EruptField;
-import xyz.erupt.annotation.expr.ExprBool;
-import xyz.erupt.annotation.sub_erupt.LinkTree;
-import xyz.erupt.annotation.sub_erupt.Power;
 import xyz.erupt.annotation.sub_field.Edit;
 import xyz.erupt.annotation.sub_field.EditType;
 import xyz.erupt.annotation.sub_field.View;
 import xyz.erupt.annotation.sub_field.sub_edit.ChoiceType;
+import xyz.erupt.annotation.sub_field.sub_edit.ReferenceTableType;
+import xyz.erupt.annotation.sub_field.sub_edit.Search;
 import xyz.erupt.annotation.sub_field.sub_edit.VL;
+import xyz.erupt.upms.model.EruptDict;
 
 import javax.persistence.*;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 字段定义
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2022/5/21
  */
 @Entity
@@ -40,7 +36,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "唯一编码"),
-            edit = @Edit(title = "唯一编码", notNull = true)
+            edit = @Edit(title = "唯一编码", notNull = true,
+                    search = @Search)
     )
     private String columnCode;
     /**
@@ -48,7 +45,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "对外显示名称"),
-            edit = @Edit(title = "对外显示名称", notNull = true)
+            edit = @Edit(title = "对外显示名称", notNull = true,
+                    search = @Search)
     )
     private String showName;
     /**
@@ -65,7 +63,9 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "是否支持导出到表格中"),
-            edit = @Edit(title = "是否支持导出到表格中", notNull = true)
+            edit = @Edit(title = "是否支持导出到表格中", notNull = true,
+                    search = @Search
+            )
     )
     private boolean supportInExcel;
 
@@ -83,7 +83,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "是否系统预置"),
-            edit = @Edit(title = "是否系统预置", notNull = true)
+            edit = @Edit(title = "是否系统预置", notNull = true,
+                    search = @Search)
     )
     private boolean systemInitialization;
     /**
@@ -91,7 +92,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "是否显示在表格中"),
-            edit = @Edit(title = "是否显示在表格中", notNull = true)
+            edit = @Edit(title = "是否显示在表格中", notNull = true,
+                    search = @Search)
     )
     private boolean showInTable;
     /**
@@ -99,7 +101,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "是否显示在新增界面"),
-            edit = @Edit(title = "是否显示在新增界面", notNull = true)
+            edit = @Edit(title = "是否显示在新增界面", notNull = true,
+                    search = @Search)
     )
     private boolean showInAddPage;
     /**
@@ -107,7 +110,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "是否显示在确认界面"),
-            edit = @Edit(title = "是否显示在确认界面", notNull = true)
+            edit = @Edit(title = "是否显示在确认界面", notNull = true,
+                    search = @Search)
     )
     private boolean showInComfirmPage;
     /**
@@ -115,7 +119,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "是否可编辑"),
-            edit = @Edit(title = "是否可编辑", notNull = true)
+            edit = @Edit(title = "是否可编辑", notNull = true,
+                    search = @Search)
     )
     private boolean editable;
     /**
@@ -123,7 +128,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "确认界面是否允许修改"),
-            edit = @Edit(title = "确认界面是否允许修改", notNull = true)
+            edit = @Edit(title = "确认界面是否允许修改", notNull = true,
+                    search = @Search)
     )
     private boolean editableInConfirmPage;
     /**
@@ -133,6 +139,7 @@ public class ColumnDefineEntity {
             views = @View(title = "输入类型"),
             edit = @Edit(title = "输入类型",
                     notNull = true,
+                    search = @Search,
                     type = EditType.CHOICE,
                     choiceType = @ChoiceType(
                             type = ChoiceType.Type.RADIO,
@@ -149,33 +156,27 @@ public class ColumnDefineEntity {
     /**
      * 下拉框类型的候选项
      */
+    @ManyToOne
     @EruptField(
-            views = @View(title = "下拉框类型的候选项"),
-            edit = @Edit(title = "下拉框类型的候选项", notNull = true,
-                    desc = "当输入类型为下拉框的时候需要填写，多个字段之间用逗号分隔"
+            views = @View(title = "下拉框类型的动态拉取Code", column = "name"),
+            edit = @Edit(title = "下拉框类型的动态拉取Code",
+                    desc = "当输入类型为下拉框的时候需要填写，从服务端拉取指定的数据，支持的值请参见帮助文档",
+                    type = EditType.REFERENCE_TABLE,
+                    referenceTableType = @ReferenceTableType(label = "name")
             )
     )
-    private String enumValuesString;
+    private EruptDict comboBoxDictCode;
 
     @Transient
     private List<String> enumValues;
-
-    public List<String> getEnumValues() {
-        if (!CollectionUtils.isEmpty(enumValues)) {
-            return enumValues;
-        }
-        enumValues = Arrays.stream(Optional.ofNullable(enumValuesString)
-                .map(string -> string.split(","))
-                .orElse(new String[0])).collect(Collectors.toList());
-        return enumValues;
-    }
 
     /**
      * 是否为确认界面的独有字段
      */
     @EruptField(
-            views = @View(title = "确认界面显示"),
-            edit = @Edit(title = "确认界面显示", notNull = true)
+            views = @View(title = "是否为确认界面的独有字段"),
+            edit = @Edit(title = "是否为确认界面的独有字段", notNull = true,
+                    search = @Search)
     )
     private boolean confirmProp;
 
@@ -184,7 +185,8 @@ public class ColumnDefineEntity {
      */
     @EruptField(
             views = @View(title = "是否必填"),
-            edit = @Edit(title = "是否必填", notNull = true)
+            edit = @Edit(title = "是否必填", notNull = true,
+                    search = @Search)
     )
     private boolean required;
 }

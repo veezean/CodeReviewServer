@@ -19,7 +19,7 @@ import java.util.Date;
 /**
  * 评审意见
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2021/4/26
  */
 @Entity
@@ -113,6 +113,7 @@ public class CommentEntity {
             views = @View(title = "评审人员"),
             edit = @Edit(title = "评审人员",
                     type = EditType.CHOICE,
+                    search = @Search,
                     choiceType = @ChoiceType(
                             fetchHandler = UserChoiceFetchHandler.class
                     ))
@@ -123,6 +124,7 @@ public class CommentEntity {
             views = @View(title = "评审时间"),
             edit = @Edit(
                     title = "评审时间",
+                    search = @Search,
                     type = EditType.DATE,
                     dateType = @DateType(type = DateType.Type.DATE_TIME),
                     readonly = @Readonly(params = "reviewTime", exprHandler = CommentEditReadonlyHandler.class),
@@ -161,6 +163,7 @@ public class CommentEntity {
     @EruptField(
             views = @View(title = "确认人员"),
             edit = @Edit(title = "确认人员",
+                    search = @Search,
                     type = EditType.CHOICE,
                     choiceType = @ChoiceType(
                             fetchHandler = UserChoiceFetchHandler.class
@@ -172,6 +175,7 @@ public class CommentEntity {
             views = @View(title = "确认结果"),
             edit = @Edit(
                     title = "确认结果",
+                    search = @Search,
                     ifRender = @ExprBool(params = "confirmResult", exprHandler = CommentFieldRenderHandler.class),
                     readonly = @Readonly(params = "confirmResult", exprHandler = CommentEditReadonlyHandler.class)
             )
@@ -182,6 +186,7 @@ public class CommentEntity {
             views = @View(title = "意见确认时间"),
             edit = @Edit(
                     title = "意见确认时间",
+                    search = @Search,
                     type = EditType.DATE,
                     dateType = @DateType(type = DateType.Type.DATE_TIME),
                     ifRender = @ExprBool(params = "confirmTime", exprHandler = CommentFieldRenderHandler.class),
@@ -210,6 +215,7 @@ public class CommentEntity {
             views = @View(title = "记录提交时间"),
             edit = @Edit(title = "记录提交时间",
                     type = EditType.DATE,
+                    search = @Search,
                     dateType = @DateType(type = DateType.Type.DATE_TIME),
                     ifRender = @ExprBool(params = "confirmNotes", exprHandler = CommentFieldRenderHandler.class))
     )
@@ -220,6 +226,7 @@ public class CommentEntity {
             views = @View(title = "最后更新时间"),
             edit = @Edit(
                     title = "最后更新时间",
+                    search = @Search,
                     type = EditType.DATE,
                     dateType = @DateType(type = DateType.Type.DATE_TIME),
                     ifRender = @ExprBool(params = "confirmNotes", exprHandler = CommentFieldRenderHandler.class)

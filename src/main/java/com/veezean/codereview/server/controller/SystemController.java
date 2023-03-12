@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 /**
  * 供客户端配置时测试网络连接与验证用户名密码使用
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2021/4/25
  */
 @RestController
@@ -57,6 +57,13 @@ public class SystemController {
         return Response.simpleSuccessResponse(definedRecordColumns);
     }
 
+    @PostMapping("/initColumnDefines")
+    @ApiOperation("初始化服务端的字段定义（覆盖）")
+    public Response<String> initColumnDefines(@RequestBody RecordColumns reqBody) {
+        systemService.initColumnDefines(reqBody);
+        return Response.simpleSuccessResponse();
+    }
+
     @GetMapping("/getSystemNotice")
     @ApiOperation("拉取当前系统的通知信息")
     public Response<List<NoticeBody>> getSystemNotice() {
@@ -68,4 +75,11 @@ public class SystemController {
         noticeBodies.addAll(systemNotices);
         return Response.simpleSuccessResponse(noticeBodies);
     }
+
+//    @PostMapping("/getUserShortInfoList")
+//    @ApiOperation("拉取用户列表")
+//    public Response<List<UserShortInfo>> getUserShortInfoList(@RequestBody ClientUserQueryReqBody reqBody) {
+//        List<UserShortInfo> userShortInfoList = userService.getUserShortInfoList(reqBody);
+//        return Response.simpleSuccessResponse(userShortInfoList);
+//    }
 }
