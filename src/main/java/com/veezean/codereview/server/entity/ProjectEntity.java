@@ -16,7 +16,7 @@ import javax.persistence.*;
 /**
  * 项目信息
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2021/4/26
  */
 @Entity

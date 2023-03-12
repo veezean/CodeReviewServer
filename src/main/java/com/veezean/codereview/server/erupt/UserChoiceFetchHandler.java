@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * 用户信息下拉框内容处理器
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2022/3/19
  */
 @Component

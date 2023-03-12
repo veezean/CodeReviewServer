@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 /**
  * 分页列表数据对象封装外壳
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2020/7/30
  */
 @Data

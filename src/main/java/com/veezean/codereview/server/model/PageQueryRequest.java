@@ -7,7 +7,7 @@ import lombok.ToString;
 /**
  * 分页查询请求的公共抽象父类
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2020/8/5
  */
 @Getter

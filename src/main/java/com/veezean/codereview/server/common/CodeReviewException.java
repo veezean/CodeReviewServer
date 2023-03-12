@@ -3,7 +3,7 @@ package com.veezean.codereview.server.common;
 /**
  * <类功能简要描述>
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2021/6/7
  */
 public class CodeReviewException extends RuntimeException {

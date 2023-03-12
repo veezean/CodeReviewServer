@@ -6,13 +6,16 @@ import lombok.Data;
  * <类功能简要描述>
  *
  * @author Veezean, 公众号 @架构悟道
- * @since 2021/6/5
+ * @since 2023/3/12
  */
 @Data
-public class ReviewQueryParams {
-    private Long projectId;
+public class ClientUserQueryReqBody {
+
     /**
-     * 全部、我提交的、我确认的
+     * 查询类型
+     *
+     * 参见 @ClientUserQueryType 取值定义
      */
-    private String type = "全部";
+    private int queryType;
+
 }

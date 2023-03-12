@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 /**
  * <类功能简要描述>
  *
- * @author Wang Weiren
+ * @author Veezean, 公众号 @架构悟道
  * @since 2021/4/26
  */
 @Repository
