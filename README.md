@@ -9,8 +9,10 @@
 **配套IDEA插件**
 
 本仓库的服务端代码，配套IDEA代码检视插件进行使用，插件可从如下地址获取：
-[github仓库地址](https://github.com/veezean/IntellijIDEA-CodeReview-Plugin)
-[gitee仓库地址](https://gitee.com/veezean/IntellijIDEA-CodeReview-Plugin)
+
+- [github仓库地址](https://github.com/veezean/IntellijIDEA-CodeReview-Plugin)
+
+- [gitee仓库地址](https://gitee.com/veezean/IntellijIDEA-CodeReview-Plugin)
 
 **版本说明**
 
