@@ -16,13 +16,10 @@ import java.util.Optional;
  */
 @Data
 public class CommentReqBody {
-    private Long entityUniqueId;
     private Map<String, String> propValues = new HashMap<>();
 
     public CommentModel convertToCommentModel() {
         CommentModel model = new CommentModel();
-
-        model.setEntityUniqueId(entityUniqueId);
 
         Optional.ofNullable(propValues).orElse(new HashMap<>())
                 .forEach((key, value) -> {
@@ -38,7 +35,6 @@ public class CommentReqBody {
 
     public static CommentReqBody convertToReqBody(CommentModel commentModel) {
         CommentReqBody reqBody = new CommentReqBody();
-        reqBody.setEntityUniqueId(commentModel.getEntityUniqueId());
         Map<String, String> propValues = new HashMap<>();
         Arrays.stream(ReflectUtil.getFields(CommentModel.class))
                 .filter(field -> field.getType().getSimpleName().equals(String.class.getSimpleName()))
