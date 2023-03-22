@@ -18,9 +18,6 @@ import java.util.function.Consumer;
  */
 @Data
 public class CommentModel {
-    // 用于记录DB中唯一ID，供后续扩展更新场景使用
-    private Long entityUniqueId = -1L;
-
     private String identifier;
     private String lineRange;
     private String filePath;
@@ -83,7 +80,6 @@ public class CommentModel {
     public static CommentModel convertToModel(CommentEntity entity) {
         CommentModel model = new CommentModel();
 
-        model.setEntityUniqueId(entity.getId());
         model.setIdentifier(entity.getIdentifier());
         model.setLineRange(entity.getLineRange());
         model.setFilePath(entity.getFilePath());
