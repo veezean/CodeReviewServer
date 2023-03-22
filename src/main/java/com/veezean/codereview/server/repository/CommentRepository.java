@@ -15,6 +15,7 @@ import java.util.List;
  */
 @Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
+    CommentEntity findFirstByIdentifier(String identifier);
     List<CommentEntity> findAllByConfirmer(String confirmer);
     List<CommentEntity> findAllByProject(ProjectEntity projectEntity);
     List<CommentEntity> findAllByProjectAndReviewer(ProjectEntity projectEntity, String reviewer);

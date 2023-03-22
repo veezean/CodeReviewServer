@@ -80,10 +80,11 @@ public class CommentService {
                 .map(CommentReqBody::convertToCommentModel)
                 .map(commentModel -> {
                     CommentEntity entity;
-                    if (commentModel.getEntityUniqueId() > 0L) {
-                        // 属于更新场景
-                        entity = commentRepository.findById(commentModel.getEntityUniqueId())
-                                .orElse(new CommentEntity());
+                    CommentEntity existEntity =
+                            commentRepository.findFirstByIdentifier(commentModel.getIdentifier());
+                    if (existEntity != null) {
+                        // 更新场景
+                        entity = existEntity;
                     } else {
                         // 新增场景
                         entity = new CommentEntity();
