@@ -1,29 +1,31 @@
-package com.veezean.codereview.server.common;
+package com.veezean.codereview.server.interceptor;
 
 import com.alibaba.fastjson.JSON;
+import com.veezean.codereview.server.common.CodeReviewException;
+import com.veezean.codereview.server.common.CurrentUserHolder;
 import com.veezean.codereview.server.model.Response;
+import com.veezean.codereview.server.model.UserDetail;
 import com.veezean.codereview.server.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import xyz.erupt.upms.model.EruptUser;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * <类功能简要描述>
+ * 服务端接口拦截器
  *
  * @author Veezean, 公众号 @架构悟道
  * @since 2023/3/5
  */
 @Component
 @Slf4j
-public class ClientApiAuthInterceptor implements HandlerInterceptor {
+public class ServerApiAuthInterceptor implements HandlerInterceptor {
     @Autowired
     private UserService userService;
 
@@ -34,13 +36,12 @@ public class ClientApiAuthInterceptor implements HandlerInterceptor {
             return true;
         }
         try {
-            String account = request.getHeader("account");
-            String pwd = request.getHeader("pwd");
-            if (StringUtils.isEmpty(pwd) || StringUtils.isEmpty(account)) {
-                throw new CodeReviewException("account或者pwd信息缺失");
+            String token = request.getHeader("token");
+            if (StringUtils.isEmpty(token)) {
+                throw new CodeReviewException("token信息缺失");
             }
-            EruptUser eruptUser = userService.authAndGetUserInfo(account, pwd);
-            CurrentUserHolder.saveCurrentUserInfo(eruptUser);
+            UserDetail userDetail = userService.authUserByToken(token);
+            CurrentUserHolder.saveCurrentUserInfo(userDetail);
             return true;
         } catch (Exception e) {
             // 校验没通过，直接终止了，清理下线程数据

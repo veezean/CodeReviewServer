@@ -4,6 +4,8 @@ import com.veezean.codereview.server.entity.ProjectEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * <类功能简要描述>
  *
@@ -12,4 +14,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
+    List<ProjectEntity> findAllByDepartmentId(long deptId);
 }

@@ -1,7 +1,7 @@
 package com.veezean.codereview.server.common;
 
+import com.veezean.codereview.server.model.UserDetail;
 import lombok.extern.slf4j.Slf4j;
-import xyz.erupt.upms.model.EruptUser;
 
 /**
  * <类功能简要描述>
@@ -11,17 +11,17 @@ import xyz.erupt.upms.model.EruptUser;
  */
 @Slf4j
 public class CurrentUserHolder {
-    private static final ThreadLocal<EruptUser> CURRENT_USER = new ThreadLocal<>();
+    private static final ThreadLocal<UserDetail> CURRENT_USER = new ThreadLocal<>();
 
     public static void clearCurrentThreadCache() {
         CURRENT_USER.remove();
     }
 
-    public static void saveCurrentUserInfo(EruptUser userDetailEntity) {
+    public static void saveCurrentUserInfo(UserDetail userDetailEntity) {
         CURRENT_USER.set(userDetailEntity);
     }
 
-    public static EruptUser getCurrentUser() {
+    public static UserDetail getCurrentUser() {
         return CURRENT_USER.get();
     }
 }
