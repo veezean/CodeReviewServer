@@ -9,10 +9,8 @@ import com.veezean.codereview.server.repository.CommentRepository;
 import com.veezean.codereview.server.repository.ProjectRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import xyz.erupt.upms.model.EruptUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +30,13 @@ public class CommentService {
     private CommentRepository commentRepository;
     @Autowired
     private ProjectRepository projectRepository;
+
+
+
+
+
+
+
 
     public List<CommentReqBody> queryList(ReviewQueryParams queryParams) {
         String account = CurrentUserHolder.getCurrentUser().getAccount();
@@ -108,18 +113,18 @@ public class CommentService {
      */
     public List<NoticeBody> getMyCommentNotice() {
         List<NoticeBody> results = new ArrayList<>();
-        EruptUser currentUser = CurrentUserHolder.getCurrentUser();
-        long count = commentRepository.findAllByConfirmer(currentUser.getAccount())
-                .stream()
-                .filter(entity -> {
-                    return StringUtils.isEmpty(entity.getConfirmResult()) || "未确认".equals(entity.getConfirmResult());
-                })
-                .count();
-        if (count > 0L) {
-            NoticeBody noticeBody = new NoticeBody();
-            noticeBody.setMsg("您有" + count + "条评审意见待确认！请至管理界面查看，或者点击拉取到IDEA本地确认。");
-            results.add(noticeBody);
-        }
+//        UserDetail currentUser = CurrentUserHolder.getCurrentUser();
+//        long count = commentRepository.findAllByConfirmer(currentUser.getAccount())
+//                .stream()
+//                .filter(entity -> {
+//                    return StringUtils.isEmpty(entity.getConfirmResult()) || "未确认".equals(entity.getConfirmResult());
+//                })
+//                .count();
+//        if (count > 0L) {
+//            NoticeBody noticeBody = new NoticeBody();
+//            noticeBody.setMsg("您有" + count + "条评审意见待确认！请至管理界面查看，或者点击拉取到IDEA本地确认。");
+//            results.add(noticeBody);
+//        }
 
         return results;
     }

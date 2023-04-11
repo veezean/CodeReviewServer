@@ -18,6 +18,7 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
     CommentEntity findFirstByIdentifier(String identifier);
     List<CommentEntity> findAllByConfirmer(String confirmer);
     List<CommentEntity> findAllByProject(ProjectEntity projectEntity);
+    List<CommentEntity> findAllByProjectId(long projectId);
     List<CommentEntity> findAllByProjectAndReviewer(ProjectEntity projectEntity, String reviewer);
     List<CommentEntity> findAllByProjectAndConfirmer(ProjectEntity projectEntity, String confirmer);
 

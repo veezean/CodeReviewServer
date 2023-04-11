@@ -1,24 +1,20 @@
-package com.veezean.codereview.server.entity;
+package com.veezean.codereview.server.model;
 
+import com.veezean.codereview.server.entity.DictCollectionEntity;
 import lombok.Data;
 
-import javax.persistence.*;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 import java.util.List;
 
 /**
- * 字段定义
+ * <类功能简要描述>
  *
- * @author Veezean, 公众号 @架构悟道
- * @since 2022/5/21
+ * @author Wang Weiren
+ * @since 2023/3/24
  */
-@Entity
-@Table(name = "t_comment_column", schema = "code_review", catalog = "")
 @Data
-public class ColumnDefineEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class SaveColumnDefineReqBody {
     /**
      * 字段唯一编码
      */
@@ -74,11 +70,7 @@ public class ColumnDefineEntity {
     /**
      * 下拉框类型的候选项
      */
-    @ManyToOne
-    private DictCollectionEntity dictCollection;
-
-    @Transient
-    private List<String> enumValues;
+    private String dictCollectionCode;
 
     /**
      * 是否为确认界面的独有字段

@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import xyz.erupt.core.annotation.EruptScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 服务启动入口
@@ -18,7 +18,7 @@ import xyz.erupt.core.annotation.EruptScan;
 @EnableJpaAuditing
 @EntityScan("com.veezean.codereview")
 @EnableJpaRepositories(basePackages = {"com.veezean.codereview"})
-@EruptScan
+@EnableScheduling
 public class CodeReviewApplication {
     public static void main(String[] args) {
         SpringApplication.run(CodeReviewApplication.class, args);

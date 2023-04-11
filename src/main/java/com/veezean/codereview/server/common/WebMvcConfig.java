@@ -1,5 +1,7 @@
 package com.veezean.codereview.server.common;
 
+import com.veezean.codereview.server.interceptor.ClientApiAuthInterceptor;
+import com.veezean.codereview.server.interceptor.ServerApiAuthInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +21,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
     private ClientApiAuthInterceptor clientApiAuthInterceptor;
+    @Autowired
+    private ServerApiAuthInterceptor serverApiAuthInterceptor;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -37,6 +41,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/client/system/checkConnection",
                         "/client/system/checkAuth"
+                );
+
+        registry.addInterceptor(serverApiAuthInterceptor)
+                .addPathPatterns(
+                        "/server/**"
+                )
+                .excludePathPatterns(
+                        "/server/login/doLogin",
+                        "/server/login/doLogout"
                 );
     }
 }
