@@ -20,7 +20,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <mybatis.version>3.4.6</mybatis.version>
-        <erupt.version>1.11.2</erupt.version>
+        <erupt.version>1.11.5</erupt.version>
         <spring-boot.version>2.7.5</spring-boot.version>
         <ojdbc14.version>10.2.0.4.0</ojdbc14.version>
         <lombok.version>1.18.8</lombok.version>
