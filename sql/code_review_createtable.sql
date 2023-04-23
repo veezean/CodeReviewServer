@@ -191,6 +191,9 @@ insert  into `e_upms_menu`(`id`,`create_by`,`create_time`,`update_by`,`update_ti
 (60,NULL,'2023-03-05 17:44:48.062000',NULL,NULL,'W6sCWxLt',NULL,'修改',NULL,20,1,'button','ColumnDefineEntity@EDIT',58),
 (61,NULL,'2023-03-05 17:44:48.064000',NULL,NULL,'W7slJSgX',NULL,'删除',NULL,30,1,'button','ColumnDefineEntity@DELETE',58),
 (62,NULL,'2023-03-05 17:44:48.066000',NULL,NULL,'v4is4XJ3',NULL,'详情',NULL,40,1,'button','ColumnDefineEntity@VIEW_DETAIL',58);
+(63, NULL, '2023-04-23 13:38:13.018068', NULL, NULL, 'monitor', 'fa fa-bullseye', '系统监控', NULL, 10, 1, NULL, NULL, NULL);
+(64, NULL, '2023-04-23 13:38:13.107143', NULL, NULL, 'server.html', NULL, '服务监控', NULL, 10, 1, 'tpl', 'server.html', 63);
+(65, NULL, '2023-04-23 13:38:13.113304', NULL, NULL, 'redis.html', NULL, '缓存监控', NULL, 20, 1, 'tpl', 'redis.html', 63);
 
 /*Table structure for table `e_upms_operate_log` */
 
@@ -349,7 +352,10 @@ insert  into `e_upms_role_menu`(`role_id`,`menu_id`) values
 (1,54),
 (1,55),
 (1,56),
-(1,57);
+(1,57)
+(1,63),
+(1,64),
+(1,65);
 
 /*Table structure for table `e_upms_user` */
 

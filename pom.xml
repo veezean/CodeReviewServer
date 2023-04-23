@@ -133,6 +133,12 @@
             <artifactId>erupt-web</artifactId>
             <version>${erupt.version}</version>
         </dependency>
+        <!--服务监控模块-->
+        <dependency>
+            <groupId>xyz.erupt</groupId>
+            <artifactId>erupt-monitor</artifactId>
+            <version>${erupt.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>io.springfox</groupId>

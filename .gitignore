@@ -39,3 +39,6 @@ logs/
 
 ### VS CODE ###
 .vscode/
+
+# erupt
+/.erupt
