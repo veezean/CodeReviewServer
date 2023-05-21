@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <类功能简要描述>
@@ -54,7 +56,7 @@ public class RoleController {
 
     @GetMapping("/bindRole")
     public Response<String> bindRole(@RequestParam String account, @RequestParam long roleId) {
-        roleService.bindRole(account, roleId);
+        roleService.bindRole(account, Stream.of(roleId).collect(Collectors.toList()));
         return Response.simpleSuccessResponse();
     }
 

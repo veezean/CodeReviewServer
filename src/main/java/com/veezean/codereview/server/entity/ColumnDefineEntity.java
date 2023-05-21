@@ -67,15 +67,14 @@ public class ColumnDefineEntity {
      */
     private boolean editableInConfirmPage;
     /**
-     * 输入类型，单行、多行、下拉框、radio等
+     * 输入类型，单行(TEXT)、多行（TEXTAREA）、下拉框（COMBO_BOX）等
      */
     private String inputType;
 
     /**
      * 下拉框类型的候选项
      */
-    @ManyToOne
-    private DictCollectionEntity dictCollection;
+    private String dictCollectionCode;
 
     @Transient
     private List<String> enumValues;

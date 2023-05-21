@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,7 @@ public class DictService {
         }
 
         DictCollectionEntity dictCollectionEntity = dictCollectionRepository.queryFirstByCode(reqBody.getCode());
-        if (dictCollectionEntity == null) {
+        if (dictCollectionEntity != null) {
             throw new CodeReviewException("字典集已经存在：" + reqBody.getCode());
         }
         DictCollectionEntity entity = new DictCollectionEntity();
@@ -58,7 +59,7 @@ public class DictService {
         }
 
         DictCollectionEntity existEntity = dictCollectionRepository.queryFirstByCode(reqBody.getCode());
-        if (existEntity != null) {
+        if (existEntity == null) {
             throw new CodeReviewException("字典集不存在：" + reqBody.getCode());
         }
         existEntity.setCode(reqBody.getCode());
@@ -67,10 +68,18 @@ public class DictService {
         dictCollectionRepository.saveAndFlush(existEntity);
     }
 
-    public void deleteDictCollection(String collectionCode) {
-        Optional.ofNullable(collectionCode)
-                .filter(StringUtils::isNotEmpty)
-                .ifPresent(s -> dictCollectionRepository.deleteAllByCode(s));
+    @Transactional
+    public void deleteDictCollection(long id) {
+        dictItemRepository.deleteAllByCollectionId(id);
+        dictCollectionRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteDictCollections(List<Long> ids) {
+        for (long id: ids) {
+            dictItemRepository.deleteAllByCollectionId(id);
+            dictCollectionRepository.deleteById(id);
+        }
     }
 
     public DictCollectionEntity queryCollection(String collectionCode) {
@@ -82,6 +91,10 @@ public class DictService {
 
     public List<DictCollectionEntity> queryCollections() {
         return dictCollectionRepository.findAll();
+    }
+
+    public DictItemEntity queryItemById(Long itemId) {
+        return dictItemRepository.findById(itemId).orElseThrow(() -> new CodeReviewException("记录不存在"));
     }
 
     public List<DictItemEntity> queryDictItemsByCollectionCode(String collectionCode) {
@@ -104,7 +117,7 @@ public class DictService {
             throw new CodeReviewException("字典集不存在：" + reqBody.getCollectionCode());
         }
         DictItemEntity entity =
-                Optional.ofNullable(dictItemRepository.findFirstByCollectionAndItemKey(reqBody.getCollectionCode(),
+                Optional.ofNullable(dictItemRepository.findFirstByCollectionCodeAndItemKey(reqBody.getCollectionCode(),
                         reqBody.getItemKey()))
                         .orElse(new DictItemEntity());
         entity.setCollection(collectionEntity);

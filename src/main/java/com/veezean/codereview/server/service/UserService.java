@@ -9,6 +9,7 @@ import com.veezean.codereview.server.repository.UserLoginTokenRepository;
 import com.veezean.codereview.server.repository.UserRepository;
 import com.veezean.codereview.server.repository.UserRoleRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +48,9 @@ public class UserService {
     @Autowired
     private DepartmentRepository departmentRepository;
 
+    @Autowired
+    private RoleService roleService;
+
     @PostConstruct
     public void init() {
         userService = this;
@@ -57,11 +61,10 @@ public class UserService {
         if (reqBody == null
                 || StringUtils.isEmpty(reqBody.getAccount())
                 || StringUtils.isEmpty(reqBody.getName())
-                || StringUtils.isEmpty(reqBody.getPhoneNumber())
-                || StringUtils.isEmpty(reqBody.getPassword())
                 || reqBody.getDepartmentId() <= 0
+                || CollectionUtils.isEmpty(reqBody.getRoles())
         ) {
-            throw new CodeReviewException("请求参数不合法");
+            throw new CodeReviewException("请求参数有缺失");
         }
 
         UserEntity existUser = userRepository.findFirstByAccount(reqBody.getAccount());
@@ -78,18 +81,20 @@ public class UserService {
         userEntity.setAccount(reqBody.getAccount());
         userEntity.setName(reqBody.getName());
         userEntity.setPhoneNumber(reqBody.getPhoneNumber());
-        userEntity.setPassword(reqBody.getPassword());
+        // 创建用户默认密码，首次使用时修改
+        userEntity.setPassword("123456");
         userEntity.setDepartment(departmentEntity);
         userRepository.saveAndFlush(userEntity);
+        roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
     }
 
     @Transactional
-    public void modifyUser(SaveUserReqBody reqBody) {
+    public void modifyUser(EditUserReqBody reqBody) {
         if (reqBody == null
                 || StringUtils.isEmpty(reqBody.getAccount())
                 || StringUtils.isEmpty(reqBody.getName())
-                || StringUtils.isEmpty(reqBody.getPhoneNumber())
                 || reqBody.getDepartmentId() <= 0
+                || CollectionUtils.isEmpty(reqBody.getRoles())
         ) {
             throw new CodeReviewException("请求参数不合法");
         }
@@ -105,8 +110,8 @@ public class UserService {
         existUser.setName(reqBody.getName());
         existUser.setPhoneNumber(reqBody.getPhoneNumber());
         existUser.setDepartment(departmentEntity);
-        // 修改场景，不允许修改密码
         userRepository.saveAndFlush(existUser);
+        roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
     }
 
     public void modifyPassword(ChangePwdReqBody reqBody) {
@@ -135,6 +140,17 @@ public class UserService {
                     userRoleRepository.deleteAllByUser(userEntity);
                     userRepository.delete(userEntity);
                 });
+    }
+
+    @Transactional
+    public void deleteUsers(List<String> accounts) {
+        for (String account : accounts) {
+            Optional.ofNullable(userRepository.findFirstByAccount(account))
+                    .ifPresent(userEntity -> {
+                        userRoleRepository.deleteAllByUser(userEntity);
+                        userRepository.delete(userEntity);
+                    });
+        }
     }
 
     public UserDetail getUserDetail(String account) {

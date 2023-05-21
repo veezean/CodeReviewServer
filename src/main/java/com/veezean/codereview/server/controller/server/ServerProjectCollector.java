@@ -29,13 +29,19 @@ public class ServerProjectCollector {
         return Response.simpleSuccessResponse();
     }
     @PostMapping("/modifyProject")
-    public Response<String> modifyProject(@RequestParam long deptId, @RequestBody SaveProjectReqBody reqBody) {
-        projectService.modifyProject(deptId, reqBody);
+    public Response<String> modifyProject(@RequestParam long projId, @RequestBody SaveProjectReqBody reqBody) {
+        projectService.modifyProject(projId, reqBody);
         return Response.simpleSuccessResponse();
     }
     @GetMapping("/deleteProject")
     public Response<String> deleteProject(@RequestParam long projectId) {
         projectService.deleteProject(projectId);
+        return Response.simpleSuccessResponse();
+    }
+
+    @GetMapping("/deleteProjects")
+    public Response<String> deleteProjects(@RequestParam List<Long> projectIds) {
+        projectService.deleteProjects(projectIds);
         return Response.simpleSuccessResponse();
     }
     @GetMapping("/queryProject")
@@ -44,7 +50,7 @@ public class ServerProjectCollector {
         return Response.simpleSuccessResponse(projectEntity);
     }
     @GetMapping("/queryProjectInDept")
-    public Response<List<ProjectEntity>> queryProjectInDept(@RequestParam long deptId) {
+    public Response<List<ProjectEntity>> queryProjectInDept(@RequestParam(required = false, defaultValue = "0L") long deptId) {
         List<ProjectEntity> projectEntities = projectService.queryProjectInDept(deptId);
         return Response.simpleSuccessResponse(projectEntities);
     }
