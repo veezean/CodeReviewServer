@@ -94,6 +94,9 @@ public class DepartmentService {
         if (reqBody == null || StringUtils.isEmpty(reqBody.getName())) {
             throw new CodeReviewException("修改部门失败，信息缺失");
         }
+        if (reqBody.getParentId() == deptId) {
+            throw new CodeReviewException("父部门设定错误，不允许父部门为自身节点");
+        }
         DepartmentEntity parentDeptEntity = null;
         if (reqBody.getParentId() != null) {
             parentDeptEntity = departmentRepository.findById(reqBody.getParentId())

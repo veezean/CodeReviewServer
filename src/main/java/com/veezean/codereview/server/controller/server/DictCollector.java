@@ -34,8 +34,13 @@ public class DictCollector {
         return Response.simpleSuccessResponse();
     }
     @GetMapping("/deleteCollection")
-    public Response<String> deleteCollection(@RequestParam String collectionCode) {
-         dictService.deleteDictCollection(collectionCode);
+    public Response<String> deleteCollection(@RequestParam Long id) {
+         dictService.deleteDictCollection(id);
+        return Response.simpleSuccessResponse();
+    }
+    @GetMapping("/deleteCollections")
+    public Response<String> deleteCollections(@RequestParam List<Long> ids) {
+         dictService.deleteDictCollections(ids);
         return Response.simpleSuccessResponse();
     }
     @GetMapping("/queryDictCollection")
@@ -47,6 +52,11 @@ public class DictCollector {
     public Response<List<DictCollectionEntity>> queryDictCollections() {
         List<DictCollectionEntity> dictCollectionEntities = dictService.queryCollections();
         return Response.simpleSuccessResponse(dictCollectionEntities);
+    }
+    @GetMapping("/queryDictItem")
+    public Response<DictItemEntity> queryDictItem(@RequestParam Long itemId) {
+        DictItemEntity dictItemEntity = dictService.queryItemById(itemId);
+        return Response.simpleSuccessResponse(dictItemEntity);
     }
     @GetMapping("/queryDictItems")
     public Response<List<DictItemEntity>> queryDictItems(@RequestParam String collectionCode) {

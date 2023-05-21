@@ -21,16 +21,10 @@ public class ColumnDefineController {
     @Autowired
     private ColumnDefineService columnDefineService;
 
-    @PostMapping("/createColumn")
-    public Response<String> createColumn(@RequestBody SaveColumnDefineReqBody reqBody) {
-        columnDefineService.createColumn(reqBody);
-        return Response.simpleSuccessResponse();
-    }
-
-    @PostMapping("/modifyColumn")
-    public Response<String> modifyColumn(@RequestParam long columnId,
+    @PostMapping("/createOrModifyColumn")
+    public Response<String> createOrModifyColumn(@RequestParam long columnId,
                                          @RequestBody SaveColumnDefineReqBody reqBody) {
-        columnDefineService.modifyColumn(columnId, reqBody);
+        columnDefineService.createOrModifyColumn(columnId, reqBody);
         return Response.simpleSuccessResponse();
     }
 
@@ -38,6 +32,18 @@ public class ColumnDefineController {
     public Response<String> deleteColumn(@RequestParam long columnId) {
         columnDefineService.deleteColumn(columnId);
         return Response.simpleSuccessResponse();
+    }
+
+    @GetMapping("/deleteColumns")
+    public Response<String> deleteColumns(@RequestParam List<Long> columnIds) {
+        columnDefineService.deleteColumns(columnIds);
+        return Response.simpleSuccessResponse();
+    }
+
+    @GetMapping("/queryColumn")
+    public Response<ColumnDefineEntity> queryColumn(@RequestParam long columnId) {
+        ColumnDefineEntity columnDefineEntity = columnDefineService.queryColumn(columnId);
+        return Response.simpleSuccessResponse(columnDefineEntity);
     }
 
     @GetMapping("/queryColumns")

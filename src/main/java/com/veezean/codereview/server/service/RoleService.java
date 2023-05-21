@@ -66,20 +66,27 @@ public class RoleService {
     }
 
     @Transactional
-    public void bindRole(String account, long roleId) {
+    public void bindRole(String account, List<Long> roleIds) {
         UserEntity userEntity = userRepository.findFirstByAccount(account);
-        RoleEntity roleEntity = roleRepository.findById(roleId).orElse(null);
-        if (userEntity == null || roleEntity == null) {
-            throw new CodeReviewException("用户或者角色不存在");
+        if (userEntity == null) {
+            throw new CodeReviewException("用户不存在");
         }
-        UserRoleEntity existBindingEntity = userRoleRepository.findFirstByUserAndRole(userEntity, roleEntity);
-        if (existBindingEntity == null) {
-            throw new CodeReviewException("用户与角色绑定关系已存在");
+
+        // 先清掉所有角色绑定信息
+        userRoleRepository.deleteAllByUser(userEntity);
+
+        // 再绑定新设定的角色列表
+        for (Long roleId: roleIds) {
+            RoleEntity roleEntity = roleRepository.findById(roleId).orElseThrow(() -> new CodeReviewException("角色不存在"));
+            UserRoleEntity existBindingEntity = userRoleRepository.findFirstByUserAndRole(userEntity, roleEntity);
+            if (existBindingEntity == null) {
+                UserRoleEntity userRoleEntity = new UserRoleEntity();
+                userRoleEntity.setUser(userEntity);
+                userRoleEntity.setRole(roleEntity);
+                userRoleRepository.saveAndFlush(userRoleEntity);
+            }
         }
-        UserRoleEntity userRoleEntity = new UserRoleEntity();
-        userRoleEntity.setUser(userEntity);
-        userRoleEntity.setRole(roleEntity);
-        userRoleRepository.saveAndFlush(userRoleEntity);
+
     }
 
     @Transactional

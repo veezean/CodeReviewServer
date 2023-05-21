@@ -5,6 +5,8 @@ import com.veezean.codereview.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * <类功能简要描述>
  *
@@ -24,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping("/modifyUser")
-    public Response<String> modifyUser(@RequestBody SaveUserReqBody reqBody) {
+    public Response<String> modifyUser(@RequestBody EditUserReqBody reqBody) {
         userService.modifyUser(reqBody);
         return Response.simpleSuccessResponse();
     }
@@ -32,6 +34,12 @@ public class UserController {
     @GetMapping("/deleteUser")
     public Response<String> deleteUser(@RequestParam String account) {
         userService.deleteUser(account);
+        return Response.simpleSuccessResponse();
+    }
+
+    @GetMapping("/deleteUsers")
+    public Response<String> deleteUser(@RequestParam List<String> accounts) {
+        userService.deleteUsers(accounts);
         return Response.simpleSuccessResponse();
     }
 

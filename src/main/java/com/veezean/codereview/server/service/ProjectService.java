@@ -15,6 +15,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +70,7 @@ public class ProjectService {
         projectRepository.saveAndFlush(existProjectEntity);
     }
 
+    @Transactional
     public void deleteProject(long projectId) {
         List<CommentEntity> commentEntities = commentRepository.findAllByProjectId(projectId);
         if (CollectionUtils.isNotEmpty(commentEntities)) {
@@ -77,11 +79,25 @@ public class ProjectService {
         projectRepository.deleteById(projectId);
     }
 
+    @Transactional
+    public void deleteProjects(List<Long> projectIds) {
+        for (long projectId : projectIds) {
+            List<CommentEntity> commentEntities = commentRepository.findAllByProjectId(projectId);
+            if (CollectionUtils.isNotEmpty(commentEntities)) {
+                throw new CodeReviewException("所选项目下存在评审意见，请先删除对应评审意见。");
+            }
+            projectRepository.deleteById(projectId);
+        }
+    }
+
     public ProjectEntity queryProject(long projectId) {
         return projectRepository.findById(projectId).orElseThrow(() -> new CodeReviewException("项目不存在：" + projectId));
     }
 
     public List<ProjectEntity> queryProjectInDept(long deptId) {
+        if (deptId == 0L) {
+            return projectRepository.findAll();
+        }
         return projectRepository.findAllByDepartmentId(deptId);
     }
 

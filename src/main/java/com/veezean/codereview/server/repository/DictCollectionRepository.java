@@ -14,5 +14,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DictCollectionRepository extends JpaRepository<DictCollectionEntity, Long> {
     DictCollectionEntity queryFirstByCode(String code);
-    void deleteAllByCode(String code);
 }
