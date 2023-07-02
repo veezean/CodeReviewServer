@@ -7,13 +7,13 @@ import lombok.NoArgsConstructor;
 /**
  * <类功能简要描述>
  *
- * @author Veezean, 公众号 @架构悟道
- * @since 2021/6/5
+ * @author Wang Weiren
+ * @since 2023/6/2
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserPwdCheckRespBody {
-    private boolean pass;
-    private ValuePair userInfo;
+public class ConvertResultModel<T> {
+    private T targetResult;
+    private String targetStringValue;
 }

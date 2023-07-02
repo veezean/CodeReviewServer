@@ -3,7 +3,7 @@ package com.veezean.codereview.server.model;
 import lombok.Data;
 
 /**
- * <类功能简要描述>
+ * 评审意见字段对应的值
  *
  * @author Wang Weiren
  * @since 2023/3/25
@@ -11,8 +11,8 @@ import lombok.Data;
 @Data
 public class CommentFieldModel {
     private String code;
-    private String name;
+    /**
+     * 实际值
+     */
     private String value;
-    private int sort;
-    private String type;
 }

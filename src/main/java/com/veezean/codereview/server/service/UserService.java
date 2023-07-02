@@ -1,6 +1,7 @@
 package com.veezean.codereview.server.service;
 
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.crypto.digest.MD5;
 import com.veezean.codereview.server.common.*;
 import com.veezean.codereview.server.entity.*;
 import com.veezean.codereview.server.model.*;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -82,7 +84,7 @@ public class UserService {
         userEntity.setName(reqBody.getName());
         userEntity.setPhoneNumber(reqBody.getPhoneNumber());
         // 创建用户默认密码，首次使用时修改
-        userEntity.setPassword("123456");
+        userEntity.setPassword(MD5.create().digestHex("123456", StandardCharsets.UTF_8));
         userEntity.setDepartment(departmentEntity);
         userRepository.saveAndFlush(userEntity);
         roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
@@ -114,15 +116,31 @@ public class UserService {
         roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
     }
 
+
+    @Transactional
+    public void editBaseInfo(EditUserBaseInfoReqBody reqBody) {
+        if (reqBody == null || StringUtils.isEmpty(reqBody.getName())
+        ) {
+            throw new CodeReviewException("请求参数不合法");
+        }
+
+        UserEntity existUser = userRepository.findFirstByAccount(CurrentUserHolder.getCurrentUser().getAccount());
+        if (existUser == null) {
+            throw new CodeReviewException("用户不存在");
+        }
+        existUser.setName(reqBody.getName());
+        existUser.setPhoneNumber(reqBody.getPhoneNumber());
+        userRepository.saveAndFlush(existUser);
+    }
+
     public void modifyPassword(ChangePwdReqBody reqBody) {
         if (reqBody == null
-                || StringUtils.isEmpty(reqBody.getAccount())
                 || StringUtils.isEmpty(reqBody.getOriginalPwd())
                 || StringUtils.isEmpty(reqBody.getNewPwd())
         ) {
             throw new CodeReviewException("请求参数不合法");
         }
-        UserEntity existUser = userRepository.findFirstByAccount(reqBody.getAccount());
+        UserEntity existUser = userRepository.findFirstByAccount(CurrentUserHolder.getCurrentUser().getAccount());
         if (existUser == null) {
             throw new CodeReviewException("用户不存在");
         }
@@ -155,7 +173,7 @@ public class UserService {
 
     public UserDetail getUserDetail(String account) {
         UserEntity userEntity = userRepository.findFirstByAccount(account);
-        return convertUserEntityToUserDetail(userEntity);
+        return convertUserEntityToUserDetail(userEntity, false);
     }
 
     public PageBeanList<UserDetail> getUserDetails(PageQueryRequest<UserQueryBody> request) {
@@ -179,8 +197,15 @@ public class UserService {
         }
         Page<UserDetail> userDetails =
                 userRepository.findAll(Example.of(sampleEntity), pageable)
-                        .map(this::convertUserEntityToUserDetail);
+                        .map(userEntity -> convertUserEntityToUserDetail(userEntity, false));
         return PageBeanList.create(userDetails, pageable);
+    }
+
+
+    public List<UserDetail> getAllUserDetails() {
+        return userRepository.findAll().stream()
+                .map(userEntity -> convertUserEntityToUserDetail(userEntity, true))
+                .collect(Collectors.toList());
     }
 
     public static UserDetail getUserDetailByAccout(String account) {
@@ -188,14 +213,19 @@ public class UserService {
     }
 
     public UserPwdCheckRespBody authUserPwd(UserPwdCheckReq reqBody) {
-        boolean present = Optional.ofNullable(reqBody)
+        UserEntity entity = Optional.ofNullable(reqBody)
                 .filter(req -> StringUtils.isNotEmpty(reqBody.getAccount()))
                 .filter(req -> StringUtils.isNotEmpty(reqBody.getPassword()))
                 .map(req -> userRepository.findFirstByAccount(req.getAccount()))
                 .filter(userEntity -> StringUtils.equals(reqBody.getPassword(), userEntity.getPassword()))
-                .isPresent();
+                .orElse(null);
         UserPwdCheckRespBody respBody = new UserPwdCheckRespBody();
-        respBody.setPass(present);
+        if (entity == null) {
+            respBody.setPass(false);
+        } else {
+            respBody.setPass(true);
+            respBody.setUserInfo(new ValuePair(entity.getAccount(), entity.getName()));
+        }
         return respBody;
     }
 
@@ -222,7 +252,7 @@ public class UserService {
 
         // 生层登录成功响应数据
         LoginSuccRespBody respBody = new LoginSuccRespBody();
-        respBody.setUserDetail(convertUserEntityToUserDetail(userEntity));
+        respBody.setUserDetail(convertUserEntityToUserDetail(userEntity, false));
         respBody.setToken(tokenEntity.getToken());
         respBody.setExpireAt(tokenEntity.getExpireAt());
         return respBody;
@@ -253,21 +283,23 @@ public class UserService {
                 .map(s -> userLoginTokenRepository.queryFirstByToken(s))
                 .filter(userLoginTokenEntity -> userLoginTokenEntity.getExpireAt() > System.currentTimeMillis())
                 .map(UserLoginTokenEntity::getUser)
-                .map(this::convertUserEntityToUserDetail)
+                .map(userEntity -> convertUserEntityToUserDetail(userEntity, false))
                 .orElseThrow(() -> new CodeReviewException("token不合法"));
     }
 
-    private UserDetail convertUserEntityToUserDetail(UserEntity user) {
+    private UserDetail convertUserEntityToUserDetail(UserEntity user, boolean onlyAccountName) {
         UserDetail userDetail = new UserDetail();
         userDetail.setAccount(user.getAccount());
         userDetail.setName(user.getName());
-        userDetail.setPhoneNumber(user.getPhoneNumber());
-        userDetail.setDepartment(user.getDepartment());
-        List<RoleEntity> roleEntities = userRoleRepository.findAllByUser(user)
-                .stream()
-                .map(UserRoleEntity::getRole)
-                .collect(Collectors.toList());
-        userDetail.setRoles(roleEntities);
+        if (!onlyAccountName) {
+            userDetail.setPhoneNumber(user.getPhoneNumber());
+            userDetail.setDepartment(user.getDepartment());
+            List<RoleEntity> roleEntities = userRoleRepository.findAllByUser(user)
+                    .stream()
+                    .map(UserRoleEntity::getRole)
+                    .collect(Collectors.toList());
+            userDetail.setRoles(roleEntities);
+        }
         return userDetail;
     }
 

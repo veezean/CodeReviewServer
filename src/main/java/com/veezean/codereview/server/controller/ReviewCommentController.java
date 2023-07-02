@@ -1,7 +1,10 @@
 package com.veezean.codereview.server.controller;
 
-import com.veezean.codereview.server.model.*;
-import com.veezean.codereview.server.service.CommentService;
+import com.veezean.codereview.server.model.CommitComment;
+import com.veezean.codereview.server.model.CommitResult;
+import com.veezean.codereview.server.model.Response;
+import com.veezean.codereview.server.model.ReviewQueryParams;
+import com.veezean.codereview.server.service.MongoDbReviewCommentService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
  * <类功能简要描述>
@@ -26,20 +29,20 @@ import java.util.List;
 public class ReviewCommentController {
 
     @Autowired
-    private CommentService commentService;
+    private MongoDbReviewCommentService mongoDbReviewCommentService;
 
     @PostMapping("/commitComments")
     @ApiOperation("上传评审意见")
-    public Response<String> commitComments(@RequestBody CommitComment commitComment) {
+    public Response<CommitResult> commitComments(@RequestBody CommitComment commitComment) {
         log.info("收到提交评审信息请求：{}", commitComment);
-        commentService.saveComments(commitComment);
-        return Response.simpleSuccessResponse();
+        CommitResult commitResult = mongoDbReviewCommentService.clientCommit(commitComment);
+        return Response.simpleSuccessResponse(commitResult);
     }
 
     @PostMapping("/queryList")
-    public Response<List<CommentReqBody>> queryList(@RequestBody ReviewQueryParams queryParams) {
-        List<CommentReqBody> pageBeanList = commentService.queryList(queryParams);
-        return Response.simpleSuccessResponse(pageBeanList);
+    public Response<CommitComment> queryList(@RequestBody ReviewQueryParams queryParams) {
+        CommitComment commitComment = mongoDbReviewCommentService.clientQueryComments(queryParams);
+        return Response.simpleSuccessResponse(commitComment);
     }
 
 }

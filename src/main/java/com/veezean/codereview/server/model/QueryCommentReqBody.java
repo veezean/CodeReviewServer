@@ -12,6 +12,9 @@ import lombok.Data;
 public class QueryCommentReqBody {
     private Long projectId;
     private String commitUser;
-    private String confirmUser;
+    private String realConfirmUser;
+    private String assignConfirmUser;
     private String confirmResult;
+    private String identifier;
+    private Long departmentId;
 }

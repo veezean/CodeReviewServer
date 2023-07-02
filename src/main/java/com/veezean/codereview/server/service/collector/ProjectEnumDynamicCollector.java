@@ -1,7 +1,7 @@
 package com.veezean.codereview.server.service.collector;
 
 import com.veezean.codereview.server.model.ValuePair;
-import com.veezean.codereview.server.service.UserService;
+import com.veezean.codereview.server.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,11 +15,11 @@ import java.util.stream.Collectors;
  * @since 2023/3/12
  */
 @Component
-public class UserEnumDynamicCollector implements IEnumDynamicCollector {
-    private static final String SERVER_DYNAMIC_USERLIST = "UserList";
+public class ProjectEnumDynamicCollector implements IEnumDynamicCollector {
+    private static final String SERVER_DYNAMIC_USERLIST = "ProjectList";
 
     @Autowired
-    private UserService userService;
+    private ProjectService projectService;
 
     @Override
     public String name() {
@@ -28,9 +28,10 @@ public class UserEnumDynamicCollector implements IEnumDynamicCollector {
 
     @Override
     public List<ValuePair> doCollect() {
-        return userService.getUserShortInfoList()
+        return projectService.queryProjectInDept(0L)
                 .stream()
-                .map(userShortInfo -> new ValuePair(userShortInfo.getAccount(), userShortInfo.getUserName()))
+                .map(projectEntity -> new ValuePair(String.valueOf(projectEntity.getId()),
+                        projectEntity.getProjectName()))
                 .collect(Collectors.toList());
     }
 }

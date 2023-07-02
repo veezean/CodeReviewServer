@@ -16,8 +16,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "t_dict_item", schema = "code_review", catalog = "")
 public class DictItemEntity extends BaseEntity{
-    private String itemKey;
-    private String itemValue;
+    private String value;
+    private String showName;
     private String itemDesc;
     private int sort;
     @ManyToOne

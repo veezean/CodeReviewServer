@@ -2,13 +2,11 @@ package com.veezean.codereview.server.service;
 
 import com.veezean.codereview.server.common.CodeReviewException;
 import com.veezean.codereview.server.common.CurrentUserHolder;
-import com.veezean.codereview.server.entity.CommentEntity;
 import com.veezean.codereview.server.entity.DepartmentEntity;
 import com.veezean.codereview.server.entity.ProjectEntity;
 import com.veezean.codereview.server.model.ProjectBaseInfo;
 import com.veezean.codereview.server.model.SaveProjectReqBody;
 import com.veezean.codereview.server.model.UserDetail;
-import com.veezean.codereview.server.repository.CommentRepository;
 import com.veezean.codereview.server.repository.ProjectRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -35,8 +33,8 @@ public class ProjectService {
     private ProjectRepository projectRepository;
     @Autowired
     private DepartmentService departmentService;
-    @Autowired
-    private CommentRepository commentRepository;
+//    @Autowired
+//    private CommentRepository commentRepository;
 
     public void createProject(SaveProjectReqBody reqBody) {
         if (reqBody == null
@@ -72,20 +70,20 @@ public class ProjectService {
 
     @Transactional
     public void deleteProject(long projectId) {
-        List<CommentEntity> commentEntities = commentRepository.findAllByProjectId(projectId);
-        if (CollectionUtils.isNotEmpty(commentEntities)) {
-            throw new CodeReviewException("该项目下存在评审意见，请先删除对应评审意见。");
-        }
+//        List<CommentEntity> commentEntities = commentRepository.findAllByProjectId(projectId);
+//        if (CollectionUtils.isNotEmpty(commentEntities)) {
+//            throw new CodeReviewException("该项目下存在评审意见，请先删除对应评审意见。");
+//        }
         projectRepository.deleteById(projectId);
     }
 
     @Transactional
     public void deleteProjects(List<Long> projectIds) {
         for (long projectId : projectIds) {
-            List<CommentEntity> commentEntities = commentRepository.findAllByProjectId(projectId);
-            if (CollectionUtils.isNotEmpty(commentEntities)) {
-                throw new CodeReviewException("所选项目下存在评审意见，请先删除对应评审意见。");
-            }
+//            List<CommentEntity> commentEntities = commentRepository.findAllByProjectId(projectId);
+//            if (CollectionUtils.isNotEmpty(commentEntities)) {
+//                throw new CodeReviewException("所选项目下存在评审意见，请先删除对应评审意见。");
+//            }
             projectRepository.deleteById(projectId);
         }
     }
@@ -107,10 +105,11 @@ public class ProjectService {
      * @return 项目列表
      */
     public List<ProjectBaseInfo> getMyProjects() {
-        return Optional.ofNullable(CurrentUserHolder.getCurrentUser())
-                .map(UserDetail::getDepartment)
-                .map(DepartmentEntity::getId)
-                .map(this::queryProjectInDept)
+        // 目前不限制，查询所有项目列表
+        return Optional.ofNullable(queryProjectInDept(0L))
+//                .map(UserDetail::getDepartment)
+//                .map(DepartmentEntity::getId)
+//                .map(userDetail -> )
                 .orElse(new ArrayList<>())
                 .stream()
                 .map(projectEntity -> {

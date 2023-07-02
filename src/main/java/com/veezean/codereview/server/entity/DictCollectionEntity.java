@@ -18,4 +18,5 @@ public class DictCollectionEntity extends BaseEntity {
     private String code;
     private String name;
     private String dictDesc;
+    private int type;
 }

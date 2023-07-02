@@ -50,7 +50,7 @@ public class ServerProjectCollector {
         return Response.simpleSuccessResponse(projectEntity);
     }
     @GetMapping("/queryProjectInDept")
-    public Response<List<ProjectEntity>> queryProjectInDept(@RequestParam(required = false, defaultValue = "0L") long deptId) {
+    public Response<List<ProjectEntity>> queryProjectInDept(@RequestParam(required = false, defaultValue = "0") long deptId) {
         List<ProjectEntity> projectEntities = projectService.queryProjectInDept(deptId);
         return Response.simpleSuccessResponse(projectEntities);
     }

@@ -1,5 +1,6 @@
 package com.veezean.codereview.server.controller.server;
 
+import com.veezean.codereview.server.common.CurrentUserHolder;
 import com.veezean.codereview.server.model.*;
 import com.veezean.codereview.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,13 @@ public class UserController {
         return Response.simpleSuccessResponse();
     }
 
+
+    @PostMapping("/editBaseInfo")
+    public Response<String> editBaseInfo(@RequestBody EditUserBaseInfoReqBody reqBody) {
+        userService.editBaseInfo(reqBody);
+        return Response.simpleSuccessResponse();
+    }
+
     @GetMapping("/deleteUser")
     public Response<String> deleteUser(@RequestParam String account) {
         userService.deleteUser(account);
@@ -55,9 +63,20 @@ public class UserController {
         return Response.simpleSuccessResponse(userDetails);
     }
 
+    @GetMapping("/getAllUserDetails")
+    public Response<List<UserDetail>> getAllUserDetails() {
+        List<UserDetail> userDetails = userService.getAllUserDetails();
+        return Response.simpleSuccessResponse(userDetails);
+    }
+
     @PostMapping("/changePwd")
     public Response<String> changePwd(@RequestBody ChangePwdReqBody reqBody) {
         userService.modifyPassword(reqBody);
         return Response.simpleSuccessResponse();
+    }
+
+    @GetMapping("/currentUser")
+    public Response<UserDetail> currentUser() {
+        return Response.simpleSuccessResponse(CurrentUserHolder.getCurrentUser());
     }
 }

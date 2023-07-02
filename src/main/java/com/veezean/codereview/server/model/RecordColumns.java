@@ -1,6 +1,7 @@
 package com.veezean.codereview.server.model;
 
 import com.veezean.codereview.server.entity.ColumnDefineEntity;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
