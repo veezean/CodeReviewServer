@@ -314,7 +314,7 @@ public class MongoDbReviewCommentService {
                 criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").is(String.valueOf(queryParams.getProjectId()));
             } else if (queryParams.getDepartmentId() != null && queryParams.getDepartmentId() > 0L) {
                 // 如果指定了部门，则限定在部门内的项目中查询
-                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(projectService.queryProjectInDept(queryParams.getDepartmentId())
+                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(projectService.queryProjectInDept(queryParams.getDepartmentId() + "")
                         .stream()
                         .map(projectEntity -> String.valueOf(projectEntity.getId()))
                         .collect(Collectors.toList()));

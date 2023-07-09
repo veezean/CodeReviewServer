@@ -28,7 +28,7 @@ public class ProjectEnumDynamicCollector implements IEnumDynamicCollector {
 
     @Override
     public List<ValuePair> doCollect() {
-        return projectService.queryProjectInDept(0L)
+        return projectService.queryProjectInDept("0")
                 .stream()
                 .map(projectEntity -> new ValuePair(String.valueOf(projectEntity.getId()),
                         projectEntity.getProjectName()))

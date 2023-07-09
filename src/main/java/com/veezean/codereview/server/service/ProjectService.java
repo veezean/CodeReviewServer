@@ -92,11 +92,17 @@ public class ProjectService {
         return projectRepository.findById(projectId).orElseThrow(() -> new CodeReviewException("项目不存在：" + projectId));
     }
 
-    public List<ProjectEntity> queryProjectInDept(long deptId) {
-        if (deptId == 0L) {
+    public List<ProjectEntity> queryProjectInDept(String deptId) {
+        long deptIdValue = 0L;
+        try {
+            deptIdValue = Long.parseLong(deptId);
+        } catch (Exception e) {
+            // do nothing
+        }
+        if (deptIdValue == 0L) {
             return projectRepository.findAll();
         }
-        return projectRepository.findAllByDepartmentId(deptId);
+        return projectRepository.findAllByDepartmentId(deptIdValue);
     }
 
     /**
@@ -106,7 +112,7 @@ public class ProjectService {
      */
     public List<ProjectBaseInfo> getMyProjects() {
         // 目前不限制，查询所有项目列表
-        return Optional.ofNullable(queryProjectInDept(0L))
+        return Optional.ofNullable(queryProjectInDept("0"))
 //                .map(UserDetail::getDepartment)
 //                .map(DepartmentEntity::getId)
 //                .map(userDetail -> )

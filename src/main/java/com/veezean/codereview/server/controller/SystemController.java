@@ -88,4 +88,11 @@ public class SystemController {
 //        List<UserShortInfo> userShortInfoList = userService.getUserShortInfoList(reqBody);
 //        return Response.simpleSuccessResponse(userShortInfoList);
 //    }
+
+    @PostMapping("/mockNotice")
+    @ApiOperation("通知服务模拟接口")
+    public Response<String> mockNotice(@RequestBody String request) {
+        log.info("Notice Request:{}", request);
+        return Response.simpleSuccessResponse();
+    }
 }
