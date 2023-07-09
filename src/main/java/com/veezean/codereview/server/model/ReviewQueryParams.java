@@ -12,7 +12,7 @@ import lombok.Data;
 public class ReviewQueryParams {
     private Long projectId;
     /**
-     * 全部、我提交的、我确认的
+     * 全部、我提交的、待我确认
      */
     private String type = "全部";
 }

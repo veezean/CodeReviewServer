@@ -12,5 +12,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ColumnDefineRepository extends JpaRepository<ColumnDefineEntity, Long> {
-
+    ColumnDefineEntity findFirstByColumnCode(String columnCode);
 }

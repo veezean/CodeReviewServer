@@ -27,42 +27,6 @@ public class SystemService {
     @Autowired
     private ColumnDefineRepository columnDefineRepository;
 
-    public RecordColumns getDefinedRecordColumns() {
-//        List<ColumnDefineEntity> columnDefineEntities = columnDefineRepository.findAll()
-//                .stream()
-//                .sorted((o1, o2) -> o1.getSortIndex() - o2.getSortIndex() > 0 ? 1 : -1)
-//                .peek(columnDefineEntity -> Optional.ofNullable(columnDefineEntity.getComboBoxDictCode())
-//                        .ifPresent(eruptDict -> {
-//                            String eruptDictCode = eruptDict.getCode();
-//                            if (!eruptDictCode.startsWith(SERVER_DYNAMIC_ENUM_PREFIX)) {
-//                                Map<String, Object> params = new HashMap<>();
-//                                params.put("code", eruptDictCode);
-//                                // 拉取对应枚举值定义列表，返给客户端
-//                                List<String> enums =
-//                                        Optional.ofNullable(eruptDao.queryEntityList(EruptDictItem.class, "eruptDict" +
-//                                                ".code = :code", params))
-//                                                .orElse(new ArrayList<>())
-//                                                .stream()
-//                                                .map(EruptDictItem::getCode)
-//                                                .collect(Collectors.toList());
-//                                columnDefineEntity.setEnumValues(enums);
-//                                log.info("枚举值定义拉取完成，枚举值code:{}, 拉取枚举数据条数：{}", eruptDictCode, enums.size());
-//                            } else {
-//                                String dictCode = eruptDictCode.replaceFirst(SERVER_DYNAMIC_ENUM_PREFIX, "");
-//                                // 定制策略，拉取服务端用户列表
-//                                EnumDynamicCollectorManage.getCollector(dictCode).ifPresent(collector -> {
-//                                    List<String> enums = collector.doCollect();
-//                                    columnDefineEntity.setEnumValues(enums);
-//                                    log.info("动态定制枚举数据处理完成，名称：{}， 数据量：{}", dictCode, enums.size());
-//                                });
-//                            }
-//                        }))
-//                .collect(Collectors.toList());
-//        RecordColumns columns = new RecordColumns();
-//        columns.setColumns(columnDefineEntities);
-//        return columns;
-        return null;
-    }
 
     public List<NoticeBody> getSystemNotice() {
         Map<String, Object> params = new HashMap<>();

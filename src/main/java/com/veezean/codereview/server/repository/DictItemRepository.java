@@ -16,6 +16,6 @@ import java.util.List;
 @Repository
 public interface DictItemRepository extends JpaRepository<DictItemEntity, Long> {
     List<DictItemEntity> findAllByCollectionCode(String code);
-    DictItemEntity findFirstByCollectionCodeAndItemKey(String collectionCode, String itemKey);
+    DictItemEntity findFirstByCollectionCodeAndValue(String collectionCode, String itemValue);
     void deleteAllByCollectionId(long id);
 }

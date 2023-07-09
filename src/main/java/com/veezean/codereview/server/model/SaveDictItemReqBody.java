@@ -13,8 +13,8 @@ import javax.persistence.ManyToOne;
  */
 @Data
 public class SaveDictItemReqBody {
-    private String itemKey;
-    private String itemValue;
+    private String value;
+    private String showName;
     private String itemDesc;
     private int sort;
     private String collectionCode;

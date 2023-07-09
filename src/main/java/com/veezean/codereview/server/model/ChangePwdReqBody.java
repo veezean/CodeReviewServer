@@ -10,7 +10,6 @@ import lombok.Data;
  */
 @Data
 public class ChangePwdReqBody {
-    private String account;
     private String originalPwd;
     private String newPwd;
 }

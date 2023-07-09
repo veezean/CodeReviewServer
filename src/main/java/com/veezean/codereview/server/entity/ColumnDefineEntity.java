@@ -1,5 +1,6 @@
 package com.veezean.codereview.server.entity;
 
+import com.veezean.codereview.server.model.ValuePair;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -47,23 +48,39 @@ public class ColumnDefineEntity {
      */
     private boolean systemInitialization;
     /**
-     * 是否显示在表格中
+     * 是否显示在IDEA表格中
      */
-    private boolean showInTable;
+    private boolean showInIdeaTable;
+    /**
+     * web端表格中该字段占用宽度
+     */
+    private int webTableColumnWidth;
+    /**
+     * 是否显示在WEB端表格中
+     */
+    private boolean showInWebTable;
     /**
      * 是否显示在新增界面
      */
     private boolean showInAddPage;
     /**
+     * 是否显示在编辑界面
+     */
+    private boolean showInEditPage;
+    /**
      * 是否显示在确认界面
      */
-    private boolean showInComfirmPage;
+    private boolean showInConfirmPage;
     /**
-     * 是否可编辑
+     * 新增时是否可编辑
      */
-    private boolean editable;
+    private boolean editableInAddPage;
     /**
-     * 确认界面是否允许修改
+     * 修改时是否可编辑
+     */
+    private boolean editableInEditPage;
+    /**
+     * 确认界面是否可编辑
      */
     private boolean editableInConfirmPage;
     /**
@@ -77,12 +94,12 @@ public class ColumnDefineEntity {
     private String dictCollectionCode;
 
     @Transient
-    private List<String> enumValues;
+    private List<ValuePair> enumValues;
 
-    /**
-     * 是否为确认界面的独有字段
-     */
-    private boolean confirmProp;
+//    /**
+//     * 是否为确认界面的独有字段
+//     */
+//    private boolean confirmProp;
 
     /**
      * 是否必填

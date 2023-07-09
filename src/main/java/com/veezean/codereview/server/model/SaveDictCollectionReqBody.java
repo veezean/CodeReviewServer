@@ -13,4 +13,5 @@ public class SaveDictCollectionReqBody {
     private String code;
     private String name;
     private String dictDesc;
+    private int type;
 }

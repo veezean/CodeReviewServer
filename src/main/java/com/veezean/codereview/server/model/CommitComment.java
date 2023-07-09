@@ -1,5 +1,6 @@
 package com.veezean.codereview.server.model;
 
+import com.veezean.codereview.server.monogo.ReviewCommentEntity;
 import lombok.Data;
 
 import java.util.List;
@@ -12,6 +13,5 @@ import java.util.List;
  */
 @Data
 public class CommitComment {
-    private Long projectId;
-    private List<CommentReqBody> comments;
+    private List<ReviewCommentEntity> comments;
 }

@@ -1,13 +1,15 @@
 package com.veezean.codereview.server.controller.server;
 
+import com.veezean.codereview.server.common.SystemCommentFieldKey;
 import com.veezean.codereview.server.entity.ColumnDefineEntity;
 import com.veezean.codereview.server.model.Response;
-import com.veezean.codereview.server.model.SaveColumnDefineReqBody;
+import com.veezean.codereview.server.model.ValuePair;
 import com.veezean.codereview.server.service.ColumnDefineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <类功能简要描述>
@@ -23,7 +25,7 @@ public class ColumnDefineController {
 
     @PostMapping("/createOrModifyColumn")
     public Response<String> createOrModifyColumn(@RequestParam long columnId,
-                                         @RequestBody SaveColumnDefineReqBody reqBody) {
+                                         @RequestBody ColumnDefineEntity reqBody) {
         columnDefineService.createOrModifyColumn(columnId, reqBody);
         return Response.simpleSuccessResponse();
     }
@@ -48,7 +50,21 @@ public class ColumnDefineController {
 
     @GetMapping("/queryColumns")
     public Response<List<ColumnDefineEntity>> queryColumns() {
-        List<ColumnDefineEntity> defineEntities = columnDefineService.queryColumns();
+        List<ColumnDefineEntity> defineEntities = columnDefineService.queryColumns()
+                .collect(Collectors.toList());
         return Response.simpleSuccessResponse(defineEntities);
+    }
+
+    @GetMapping("/queryConfirmResultDictItems")
+    public Response<List<ValuePair>> queryConfirmResultDictItems() {
+        List<ValuePair> defineEntities =
+                columnDefineService.queryFieldDictItems(SystemCommentFieldKey.CONFIRM_RESULT.getCode());
+        return Response.simpleSuccessResponse(defineEntities);
+    }
+
+    @GetMapping("/getJsonContent")
+    public Response<String> getJsonContent() {
+        String jsonContent = columnDefineService.getJsonContent();
+        return Response.simpleSuccessResponse("操作成功", jsonContent);
     }
 }
