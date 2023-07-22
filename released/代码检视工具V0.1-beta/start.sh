@@ -1,0 +1,1 @@
+nohup java -jar com.veezean.codereview.server.jar --spring.profiles.active=PROD &

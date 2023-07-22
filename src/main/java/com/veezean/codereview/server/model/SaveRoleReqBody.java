@@ -10,6 +10,8 @@ import lombok.Data;
  */
 @Data
 public class SaveRoleReqBody {
+    private String roleCode;
     private String roleName;
     private String roleDesc;
+    private String canAccessPage;
 }

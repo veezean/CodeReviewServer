@@ -24,6 +24,7 @@ import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -239,13 +240,14 @@ public class UserService {
                 .orElseThrow(() -> new CodeReviewException("登录失败,用户名或密码错误"));
 
         // 生层token值
-        UserLoginTokenEntity tokenEntity = Optional.ofNullable(userLoginTokenRepository.queryFirstByUser(userEntity))
-                .orElseGet(() -> {
-                    UserLoginTokenEntity entity = new UserLoginTokenEntity();
-                    entity.setToken(RandomUtil.randomString(32));
-                    entity.setUser(userEntity);
-                    return entity;
-                });
+        UserLoginTokenEntity tokenEntity =
+                Optional.ofNullable(userLoginTokenRepository.queryFirstByUserId(userEntity.getId()))
+                        .orElseGet(() -> {
+                            UserLoginTokenEntity entity = new UserLoginTokenEntity();
+                            entity.setToken(RandomUtil.randomString(32));
+                            entity.setUserId(userEntity.getId());
+                            return entity;
+                        });
         // 设定过期时间，如果已存在，则续期
         tokenEntity.setExpireAt(calculateTokenExpireAt());
         userLoginTokenRepository.saveAndFlush(tokenEntity);
@@ -268,7 +270,11 @@ public class UserService {
     @Transactional
     public void userLogout() {
         Optional.ofNullable(CurrentUserHolder.getCurrentUser())
-                .ifPresent(user -> userLoginTokenRepository.deleteAllByUserAccount(user.getAccount()));
+                .map(UserDetail::getAccount)
+                .map(account -> userRepository.findFirstByAccount(account))
+                .ifPresent(user -> {
+                    userLoginTokenRepository.deleteAllByUserId(user.getId());
+                });
     }
 
     /**
@@ -282,7 +288,9 @@ public class UserService {
                 .filter(StringUtils::isNotEmpty)
                 .map(s -> userLoginTokenRepository.queryFirstByToken(s))
                 .filter(userLoginTokenEntity -> userLoginTokenEntity.getExpireAt() > System.currentTimeMillis())
-                .map(UserLoginTokenEntity::getUser)
+                .map(UserLoginTokenEntity::getUserId)
+                .map(userId -> userRepository.findById(userId))
+                .map(Optional::get)
                 .map(userEntity -> convertUserEntityToUserDetail(userEntity, false))
                 .orElseThrow(() -> new CodeReviewException("token不合法"));
     }

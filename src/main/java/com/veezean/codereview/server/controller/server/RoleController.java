@@ -48,6 +48,12 @@ public class RoleController {
         return Response.simpleSuccessResponse();
     }
 
+    @GetMapping("/deleteRoles")
+    public Response<String> deleteRole(@RequestParam List<Long> roleIds) {
+        roleService.deleteRoles(roleIds);
+        return Response.simpleSuccessResponse();
+    }
+
     @GetMapping("/getRoleById")
     public Response<RoleEntity> getRoleById(@RequestParam long roleId) {
         RoleEntity roleEntity = roleService.getRoleById(roleId);
@@ -64,5 +70,11 @@ public class RoleController {
     public Response<String> unbindRole(@RequestParam String account, @RequestParam long roleId) {
         roleService.unbindRole(account, roleId);
         return Response.simpleSuccessResponse();
+    }
+
+    @GetMapping("/getUserCanAccessPages")
+    public Response<List<String>> getUserCanAccessPages() {
+        List<String> userCanAccessPages = roleService.getUserCanAccessPages();
+        return Response.simpleSuccessResponse(userCanAccessPages);
     }
 }
