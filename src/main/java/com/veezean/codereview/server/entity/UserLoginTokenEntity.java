@@ -4,9 +4,7 @@ import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import java.util.Date;
 
 /**
  * <类功能简要描述>
@@ -20,8 +18,7 @@ import java.util.Date;
 public class UserLoginTokenEntity extends BaseEntity{
     @Column(nullable = false, unique = true, length = 64)
     private String token;
-    @ManyToOne
-    private UserEntity user;
+    private long userId;
     @Column(nullable = false)
     private long expireAt;
 }

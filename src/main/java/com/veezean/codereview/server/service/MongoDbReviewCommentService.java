@@ -20,6 +20,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -40,7 +41,7 @@ public class MongoDbReviewCommentService {
 
     @Autowired
     private ReviewCommentRepository reviewCommentRepository;
-    @Autowired
+    @Resource
     private MongoTemplate mongoTemplate;
     @Autowired
     private ColumnDefineService columnDefineService;
@@ -91,8 +92,12 @@ public class MongoDbReviewCommentService {
         List<CommentFieldVO> commentFieldVOS = buildCommentFieldVO(ColumnDefineEntity::isShowInEditPage,
                 ColumnDefineEntity::isEditableInEditPage);
         commentFieldVOS.forEach(editModel -> {
-            // 赋值
-            editModel.setValuePair(columnCodeValues.get(editModel.getCode()));
+            // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
+            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            editModel.setValuePair(valuePair);
         });
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
@@ -107,8 +112,12 @@ public class MongoDbReviewCommentService {
         List<CommentFieldVO> commentFieldVOS = buildCommentFieldVO(ColumnDefineEntity::isShowInConfirmPage,
                 ColumnDefineEntity::isEditableInConfirmPage);
         commentFieldVOS.forEach(editModel -> {
-            // 赋值
-            editModel.setValuePair(columnCodeValues.get(editModel.getCode()));
+            // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
+            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            editModel.setValuePair(valuePair);
         });
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
@@ -122,8 +131,12 @@ public class MongoDbReviewCommentService {
         List<CommentFieldVO> commentFieldVOS = buildCommentFieldVO(columnDefineEntity -> true,
                 columnDefineEntity -> false);
         commentFieldVOS.forEach(editModel -> {
-            // 赋值
-            editModel.setValuePair(columnCodeValues.get(editModel.getCode()));
+            // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
+            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            editModel.setValuePair(valuePair);
         });
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
@@ -336,6 +349,13 @@ public class MongoDbReviewCommentService {
             } else {
                 // 版本+1，CAS控制
                 reviewCommentEntity.increaseDataVersion();
+                // 空值保护，防止客户端提交异常数据上来
+                reviewCommentEntity.getValues().forEach((s, valuePair) -> {
+                    if (valuePair == null) {
+                        valuePair =  new ValuePair();
+                    }
+                    reviewCommentEntity.getValues().put(s, valuePair);
+                });
                 passEntitiespassEntities.add(reviewCommentEntity);
                 result.putVersion(reviewCommentEntity.getId(), reviewCommentEntity.getDataVersion());
             }

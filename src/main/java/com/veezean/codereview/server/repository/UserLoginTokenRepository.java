@@ -14,8 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserLoginTokenRepository extends JpaRepository<UserLoginTokenEntity, Long> {
     UserLoginTokenEntity queryFirstByToken(String token);
-    UserLoginTokenEntity queryFirstByUser(UserEntity userEntity);
-    void deleteAllByUserAccount(String userAccount);
-    void deleteAllByToken(String token);
+    UserLoginTokenEntity queryFirstByUserId(long userId);
+    void deleteAllByUserId(long userId);
     void deleteAllByExpireAtLessThan(long time);
 }
