@@ -70,7 +70,13 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
         </dependency>
 
         <dependency>
@@ -88,6 +94,12 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- MongoDB -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
 
         <dependency>
@@ -113,25 +125,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-        </dependency>
-
-        <!--用户权限管理-->
-        <dependency>
-            <groupId>xyz.erupt</groupId>
-            <artifactId>erupt-upms</artifactId>
-            <version>${erupt.version}</version>
-        </dependency>
-        <!--接口数据安全-->
-        <dependency>
-            <groupId>xyz.erupt</groupId>
-            <artifactId>erupt-security</artifactId>
-            <version>${erupt.version}</version>
-        </dependency>
-        <!--后台WEB界面-->
-        <dependency>
-            <groupId>xyz.erupt</groupId>
-            <artifactId>erupt-web</artifactId>
-            <version>${erupt.version}</version>
         </dependency>
 
         <dependency>

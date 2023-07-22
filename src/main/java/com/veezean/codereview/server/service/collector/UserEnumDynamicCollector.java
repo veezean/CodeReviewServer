@@ -1,5 +1,6 @@
 package com.veezean.codereview.server.service.collector;
 
+import com.veezean.codereview.server.model.ValuePair;
 import com.veezean.codereview.server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,10 +27,10 @@ public class UserEnumDynamicCollector implements IEnumDynamicCollector {
     }
 
     @Override
-    public List<String> doCollect() {
+    public List<ValuePair> doCollect() {
         return userService.getUserShortInfoList()
                 .stream()
-                .map(userShortInfo -> userShortInfo.getUserName() + "|" + userShortInfo.getAccount())
+                .map(userShortInfo -> new ValuePair(userShortInfo.getAccount(), userShortInfo.getUserName()))
                 .collect(Collectors.toList());
     }
 }

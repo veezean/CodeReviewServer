@@ -1,8 +1,9 @@
 package com.veezean.codereview.server.controller;
 
+import com.veezean.codereview.server.entity.ColumnDefineEntity;
 import com.veezean.codereview.server.model.*;
+import com.veezean.codereview.server.service.ColumnDefineService;
 import com.veezean.codereview.server.service.SystemService;
-import com.veezean.codereview.server.service.CommentService;
 import com.veezean.codereview.server.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 供客户端配置时测试网络连接与验证用户名密码使用
@@ -31,10 +31,13 @@ public class SystemController {
     private SystemService systemService;
 
     @Autowired
-    private UserService userService;
+    private ColumnDefineService columnDefineService;
 
     @Autowired
-    private CommentService commentService;
+    private UserService userService;
+
+//    @Autowired
+//    private CommentService commentService;
 
     @GetMapping("/checkConnection")
     @ApiOperation("服务器连接检查")
@@ -45,15 +48,18 @@ public class SystemController {
     @PostMapping("/checkAuth")
     @ApiOperation("服务端鉴权信息检查")
     public Response<UserPwdCheckRespBody> checkUserAndPwd(@RequestBody UserPwdCheckReq request) {
-        log.info("UserPwdCheckReq: {}", request);
+        log.info("Client auth in... account:{}", request.getAccount());
         UserPwdCheckRespBody respBody = userService.authUserPwd(request);
+        log.info("Client account:{}, auth result:{}", request.getAccount(), respBody.isPass());
         return Response.simpleSuccessResponse(respBody);
     }
 
     @GetMapping("/pullColumnDefines")
     @ApiOperation("拉取服务端配置的评审字段配置")
     public Response<RecordColumns> pullSystemColumnDefines() {
-        RecordColumns definedRecordColumns = systemService.getDefinedRecordColumns();
+        List<ColumnDefineEntity> defineEntities = columnDefineService.queryColumns().collect(Collectors.toList());
+        RecordColumns definedRecordColumns = new RecordColumns();
+        definedRecordColumns.setColumns(defineEntities);
         return Response.simpleSuccessResponse(definedRecordColumns);
     }
 
@@ -67,12 +73,12 @@ public class SystemController {
     @GetMapping("/getSystemNotice")
     @ApiOperation("拉取当前系统的通知信息")
     public Response<List<NoticeBody>> getSystemNotice() {
-        List<NoticeBody> myCommentNotices = commentService.getMyCommentNotice();
-        List<NoticeBody> systemNotices = systemService.getSystemNotice();
+//        List<NoticeBody> myCommentNotices = commentService.getMyCommentNotice();
+//        List<NoticeBody> systemNotices = systemService.getSystemNotice();
 
         List<NoticeBody> noticeBodies = new ArrayList<>();
-        noticeBodies.addAll(myCommentNotices);
-        noticeBodies.addAll(systemNotices);
+//        noticeBodies.addAll(myCommentNotices);
+//        noticeBodies.addAll(systemNotices);
         return Response.simpleSuccessResponse(noticeBodies);
     }
 
@@ -82,4 +88,11 @@ public class SystemController {
 //        List<UserShortInfo> userShortInfoList = userService.getUserShortInfoList(reqBody);
 //        return Response.simpleSuccessResponse(userShortInfoList);
 //    }
+
+    @PostMapping("/mockNotice")
+    @ApiOperation("通知服务模拟接口")
+    public Response<String> mockNotice(@RequestBody String request) {
+        log.info("Notice Request:{}", request);
+        return Response.simpleSuccessResponse();
+    }
 }

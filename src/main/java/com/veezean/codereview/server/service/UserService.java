@@ -1,24 +1,31 @@
 package com.veezean.codereview.server.service;
 
-import com.veezean.codereview.server.common.ClientUserQueryType;
-import com.veezean.codereview.server.common.CodeReviewException;
-import com.veezean.codereview.server.common.CurrentUserHolder;
-import com.veezean.codereview.server.model.ClientUserQueryReqBody;
-import com.veezean.codereview.server.model.UserPwdCheckReq;
-import com.veezean.codereview.server.model.UserPwdCheckRespBody;
-import com.veezean.codereview.server.model.UserShortInfo;
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.crypto.digest.MD5;
+import com.veezean.codereview.server.common.*;
+import com.veezean.codereview.server.entity.*;
+import com.veezean.codereview.server.model.*;
+import com.veezean.codereview.server.repository.DepartmentRepository;
+import com.veezean.codereview.server.repository.UserLoginTokenRepository;
+import com.veezean.codereview.server.repository.UserRepository;
+import com.veezean.codereview.server.repository.UserRoleRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import xyz.erupt.jpa.dao.EruptDao;
-import xyz.erupt.upms.model.EruptOrg;
-import xyz.erupt.upms.model.EruptUser;
-import xyz.erupt.upms.service.EruptUserService;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -30,42 +37,294 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserService {
-
     private static UserService userService;
 
-    @Resource
-    private EruptDao eruptDao;
+    @Value("${application.config.tokenExpireDays:2}")
+    private int tokenExpireDays;
 
     @Autowired
-    private EruptUserService eruptUserService;
+    private UserLoginTokenRepository userLoginTokenRepository;
+    @Autowired
+    private UserRoleRepository userRoleRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private RoleService roleService;
 
     @PostConstruct
     public void init() {
         userService = this;
     }
 
-    public static EruptUser getUserDetailByAccout(String account) {
-        return userService.getUserByAccount(account);
+    @Transactional
+    public void createUser(SaveUserReqBody reqBody) {
+        if (reqBody == null
+                || StringUtils.isEmpty(reqBody.getAccount())
+                || StringUtils.isEmpty(reqBody.getName())
+                || reqBody.getDepartmentId() <= 0
+                || CollectionUtils.isEmpty(reqBody.getRoles())
+        ) {
+            throw new CodeReviewException("请求参数有缺失");
+        }
+
+        UserEntity existUser = userRepository.findFirstByAccount(reqBody.getAccount());
+        if (existUser != null) {
+            throw new CodeReviewException("账号已存在");
+        }
+
+        DepartmentEntity departmentEntity = departmentRepository.findById(reqBody.getDepartmentId()).orElse(null);
+        if (departmentEntity == null) {
+            throw new CodeReviewException("部门不存在");
+        }
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setAccount(reqBody.getAccount());
+        userEntity.setName(reqBody.getName());
+        userEntity.setPhoneNumber(reqBody.getPhoneNumber());
+        // 创建用户默认密码，首次使用时修改
+        userEntity.setPassword(MD5.create().digestHex("123456", StandardCharsets.UTF_8));
+        userEntity.setDepartment(departmentEntity);
+        userRepository.saveAndFlush(userEntity);
+        roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
     }
 
-    private EruptUser getUserByAccount(String account) {
-        return eruptDao.queryEntity(EruptUser.class, "account=:account", new HashMap<String, Object>(1) {{
-            this.put("account", account);
-        }});
+    @Transactional
+    public void modifyUser(EditUserReqBody reqBody) {
+        if (reqBody == null
+                || StringUtils.isEmpty(reqBody.getAccount())
+                || StringUtils.isEmpty(reqBody.getName())
+                || reqBody.getDepartmentId() <= 0
+                || CollectionUtils.isEmpty(reqBody.getRoles())
+        ) {
+            throw new CodeReviewException("请求参数不合法");
+        }
+
+        UserEntity existUser = userRepository.findFirstByAccount(reqBody.getAccount());
+        if (existUser == null) {
+            throw new CodeReviewException("用户不存在");
+        }
+        DepartmentEntity departmentEntity = departmentRepository.findById(reqBody.getDepartmentId()).orElse(null);
+        if (departmentEntity == null) {
+            throw new CodeReviewException("部门不存在");
+        }
+        existUser.setName(reqBody.getName());
+        existUser.setPhoneNumber(reqBody.getPhoneNumber());
+        existUser.setDepartment(departmentEntity);
+        userRepository.saveAndFlush(existUser);
+        roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
     }
 
-    public UserPwdCheckRespBody authUserPwd(UserPwdCheckReq req) {
-        EruptUser eruptUser = getUserByAccount(req.getAccount());
-        boolean checkPwd = eruptUserService.checkPwd(eruptUser, req.getPassword());
-        return new UserPwdCheckRespBody(checkPwd);
+
+    @Transactional
+    public void editBaseInfo(EditUserBaseInfoReqBody reqBody) {
+        if (reqBody == null || StringUtils.isEmpty(reqBody.getName())
+        ) {
+            throw new CodeReviewException("请求参数不合法");
+        }
+
+        UserEntity existUser = userRepository.findFirstByAccount(CurrentUserHolder.getCurrentUser().getAccount());
+        if (existUser == null) {
+            throw new CodeReviewException("用户不存在");
+        }
+        existUser.setName(reqBody.getName());
+        existUser.setPhoneNumber(reqBody.getPhoneNumber());
+        userRepository.saveAndFlush(existUser);
     }
 
-    public EruptUser authAndGetUserInfo(String account, String pwd) {
-        EruptUser eruptUser = getUserByAccount(account);
+    public void modifyPassword(ChangePwdReqBody reqBody) {
+        if (reqBody == null
+                || StringUtils.isEmpty(reqBody.getOriginalPwd())
+                || StringUtils.isEmpty(reqBody.getNewPwd())
+        ) {
+            throw new CodeReviewException("请求参数不合法");
+        }
+        UserEntity existUser = userRepository.findFirstByAccount(CurrentUserHolder.getCurrentUser().getAccount());
+        if (existUser == null) {
+            throw new CodeReviewException("用户不存在");
+        }
+        if (!StringUtils.equals(existUser.getPassword(), reqBody.getOriginalPwd())) {
+            throw new CodeReviewException("修改失败，原密码不正确");
+        }
+        existUser.setPassword(reqBody.getNewPwd());
+        userRepository.saveAndFlush(existUser);
+    }
 
-        boolean checkPwd = StringUtils.equals(pwd, eruptUser.getPassword());
-        if (checkPwd) {
-            return eruptUser;
+    @Transactional
+    public void deleteUser(String account) {
+        Optional.ofNullable(userRepository.findFirstByAccount(account))
+                .ifPresent(userEntity -> {
+                    userRoleRepository.deleteAllByUser(userEntity);
+                    userRepository.delete(userEntity);
+                });
+    }
+
+    @Transactional
+    public void deleteUsers(List<String> accounts) {
+        for (String account : accounts) {
+            Optional.ofNullable(userRepository.findFirstByAccount(account))
+                    .ifPresent(userEntity -> {
+                        userRoleRepository.deleteAllByUser(userEntity);
+                        userRepository.delete(userEntity);
+                    });
+        }
+    }
+
+    public UserDetail getUserDetail(String account) {
+        UserEntity userEntity = userRepository.findFirstByAccount(account);
+        return convertUserEntityToUserDetail(userEntity, false);
+    }
+
+    public PageBeanList<UserDetail> getUserDetails(PageQueryRequest<UserQueryBody> request) {
+        Pageable pageable = PageUtil.buildPageable(request);
+        UserQueryBody queryParams = request.getQueryParams();
+
+        UserEntity sampleEntity = new UserEntity();
+        if (queryParams != null) {
+            if (StringUtils.isNotEmpty(queryParams.getName())) {
+                sampleEntity.setName(queryParams.getName());
+            }
+            if (StringUtils.isNotEmpty(queryParams.getPhoneNumber())) {
+                sampleEntity.setPhoneNumber(queryParams.getPhoneNumber());
+            }
+            if (StringUtils.isNotEmpty(queryParams.getAccount())) {
+                sampleEntity.setAccount(queryParams.getAccount());
+            }
+            if (queryParams.getDeptId() != null) {
+                departmentRepository.findById(queryParams.getDeptId()).ifPresent(sampleEntity::setDepartment);
+            }
+        }
+        Page<UserDetail> userDetails =
+                userRepository.findAll(Example.of(sampleEntity), pageable)
+                        .map(userEntity -> convertUserEntityToUserDetail(userEntity, false));
+        return PageBeanList.create(userDetails, pageable);
+    }
+
+
+    public List<UserDetail> getAllUserDetails() {
+        return userRepository.findAll().stream()
+                .map(userEntity -> convertUserEntityToUserDetail(userEntity, true))
+                .collect(Collectors.toList());
+    }
+
+    public static UserDetail getUserDetailByAccout(String account) {
+        return userService.getUserDetail(account);
+    }
+
+    public UserPwdCheckRespBody authUserPwd(UserPwdCheckReq reqBody) {
+        UserEntity entity = Optional.ofNullable(reqBody)
+                .filter(req -> StringUtils.isNotEmpty(reqBody.getAccount()))
+                .filter(req -> StringUtils.isNotEmpty(reqBody.getPassword()))
+                .map(req -> userRepository.findFirstByAccount(req.getAccount()))
+                .filter(userEntity -> StringUtils.equals(reqBody.getPassword(), userEntity.getPassword()))
+                .orElse(null);
+        UserPwdCheckRespBody respBody = new UserPwdCheckRespBody();
+        if (entity == null) {
+            respBody.setPass(false);
+        } else {
+            respBody.setPass(true);
+            respBody.setUserInfo(new ValuePair(entity.getAccount(), entity.getName()));
+        }
+        return respBody;
+    }
+
+    @Transactional
+    public LoginSuccRespBody userLogin(UserPwdCheckReq userPwdCheckReq) {
+        UserEntity userEntity = Optional.ofNullable(userPwdCheckReq)
+                .filter(req -> StringUtils.isNotEmpty(req.getAccount()))
+                .filter(req -> StringUtils.isNotEmpty(req.getPassword()))
+                .map(req -> userRepository.findFirstByAccount(req.getAccount()))
+                .filter(user -> StringUtils.equals(user.getPassword(), userPwdCheckReq.getPassword()))
+                .orElseThrow(() -> new CodeReviewException("登录失败,用户名或密码错误"));
+
+        // 生层token值
+        UserLoginTokenEntity tokenEntity =
+                Optional.ofNullable(userLoginTokenRepository.queryFirstByUserId(userEntity.getId()))
+                        .orElseGet(() -> {
+                            UserLoginTokenEntity entity = new UserLoginTokenEntity();
+                            entity.setToken(RandomUtil.randomString(32));
+                            entity.setUserId(userEntity.getId());
+                            return entity;
+                        });
+        // 设定过期时间，如果已存在，则续期
+        tokenEntity.setExpireAt(calculateTokenExpireAt());
+        userLoginTokenRepository.saveAndFlush(tokenEntity);
+
+        // 生层登录成功响应数据
+        LoginSuccRespBody respBody = new LoginSuccRespBody();
+        respBody.setUserDetail(convertUserEntityToUserDetail(userEntity, false));
+        respBody.setToken(tokenEntity.getToken());
+        respBody.setExpireAt(tokenEntity.getExpireAt());
+        return respBody;
+    }
+
+    private long calculateTokenExpireAt() {
+        return System.currentTimeMillis() + CommonConsts.ONE_DAY_MILLIS * tokenExpireDays;
+    }
+
+    /**
+     * 退出登录，删除相关token缓存
+     */
+    @Transactional
+    public void userLogout() {
+        Optional.ofNullable(CurrentUserHolder.getCurrentUser())
+                .map(UserDetail::getAccount)
+                .map(account -> userRepository.findFirstByAccount(account))
+                .ifPresent(user -> {
+                    userLoginTokenRepository.deleteAllByUserId(user.getId());
+                });
+    }
+
+    /**
+     * 服务端token鉴权
+     *
+     * @param token
+     * @return
+     */
+    public UserDetail authUserByToken(String token) {
+        return Optional.ofNullable(token)
+                .filter(StringUtils::isNotEmpty)
+                .map(s -> userLoginTokenRepository.queryFirstByToken(s))
+                .filter(userLoginTokenEntity -> userLoginTokenEntity.getExpireAt() > System.currentTimeMillis())
+                .map(UserLoginTokenEntity::getUserId)
+                .map(userId -> userRepository.findById(userId))
+                .map(Optional::get)
+                .map(userEntity -> convertUserEntityToUserDetail(userEntity, false))
+                .orElseThrow(() -> new CodeReviewException("token不合法"));
+    }
+
+    private UserDetail convertUserEntityToUserDetail(UserEntity user, boolean onlyAccountName) {
+        UserDetail userDetail = new UserDetail();
+        userDetail.setAccount(user.getAccount());
+        userDetail.setName(user.getName());
+        if (!onlyAccountName) {
+            userDetail.setPhoneNumber(user.getPhoneNumber());
+            userDetail.setDepartment(user.getDepartment());
+            List<RoleEntity> roleEntities = userRoleRepository.findAllByUser(user)
+                    .stream()
+                    .map(UserRoleEntity::getRole)
+                    .collect(Collectors.toList());
+            userDetail.setRoles(roleEntities);
+        }
+        return userDetail;
+    }
+
+    /**
+     * 清理已过期的token
+     */
+    @Transactional
+    public void cleanExpiredTokens() {
+        userLoginTokenRepository.deleteAllByExpireAtLessThan(System.currentTimeMillis());
+    }
+
+    public UserDetail authAndGetUserInfo(String account, String pwd) {
+        boolean present = Optional.ofNullable(authUserPwd(new UserPwdCheckReq(account, pwd)))
+                .filter(UserPwdCheckRespBody::isPass)
+                .isPresent();
+        if (present) {
+            return getUserDetail(account);
         }
         throw new CodeReviewException("鉴权信息不正确");
     }
@@ -74,6 +333,7 @@ public class UserService {
         ClientUserQueryReqBody reqBody = new ClientUserQueryReqBody();
         return getUserShortInfoList(reqBody);
     }
+
     /**
      * 拉取系统内所有的用户信息
      *
@@ -83,30 +343,25 @@ public class UserService {
         ClientUserQueryType queryType = Optional.ofNullable(reqBody).map(ClientUserQueryReqBody::getQueryType)
                 .map(ClientUserQueryType::getType)
                 .orElse(ClientUserQueryType.ALL);
-        List<EruptUser> eruptUsers;
+        List<UserEntity> userEntities;
         if (ClientUserQueryType.ALL.equals(queryType)) {
-            eruptUsers = eruptDao.queryEntityList(EruptUser.class);
+            userEntities = userRepository.findAll();
         } else if (ClientUserQueryType.SAME_DEPARTMENT.equals(queryType)) {
-            String currentUserOrgCode = Optional.ofNullable(CurrentUserHolder.getCurrentUser())
-                    .map(EruptUser::getEruptOrg)
-                    .map(EruptOrg::getCode)
-                    .<CodeReviewException>orElseThrow(() -> new CodeReviewException("获取当前用户归属部门失败"));
-            Map<String, Object> params = new HashMap<>();
-            params.put("orgCode", currentUserOrgCode);
-            eruptUsers = eruptDao.queryEntityList(EruptUser.class, "eruptOrg.code = :orgCode", params);
+            userEntities =
+                    userRepository.findAllByDepartmentId(CurrentUserHolder.getCurrentUser().getDepartment().getId());
         } else {
             throw new CodeReviewException("客户端查询用户类型不合法:" + queryType);
         }
 
-        return Optional.ofNullable(eruptUsers)
+        return Optional.ofNullable(userEntities)
                 .orElse(new ArrayList<>())
                 .stream()
-                .map(eruptUser -> {
+                .map(userEntity -> {
                     UserShortInfo userShortInfo = new UserShortInfo();
-                    userShortInfo.setAccount(eruptUser.getAccount());
-                    userShortInfo.setUserName(eruptUser.getName());
-                    Optional.ofNullable(eruptUser.getEruptOrg())
-                            .map(EruptOrg::getCode)
+                    userShortInfo.setAccount(userEntity.getAccount());
+                    userShortInfo.setUserName(userEntity.getName());
+                    Optional.ofNullable(userEntity.getDepartment())
+                            .map(DepartmentEntity::getName)
                             .ifPresent(userShortInfo::setDepartment);
                     return userShortInfo;
                 })

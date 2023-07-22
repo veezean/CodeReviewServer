@@ -1,6 +1,8 @@
 package com.veezean.codereview.server.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * <类功能简要描述>
@@ -9,6 +11,8 @@ import lombok.Data;
  * @since 2021/6/4
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserPwdCheckReq {
 
     private String account;
