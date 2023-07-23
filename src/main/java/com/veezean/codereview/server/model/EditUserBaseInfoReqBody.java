@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * 编辑用户基本信息（自己编辑自己信息）
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2023/3/23
  */
 @Data

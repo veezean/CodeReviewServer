@@ -5,7 +5,7 @@ import com.veezean.codereview.server.model.ConvertResultModel;
 /**
  * <类功能简要描述>
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2023/5/30
  */
 public interface FieldValueConvertor<T> {

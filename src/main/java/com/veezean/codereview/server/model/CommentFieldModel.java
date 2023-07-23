@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * 评审意见字段对应的值
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2023/3/25
  */
 @Data

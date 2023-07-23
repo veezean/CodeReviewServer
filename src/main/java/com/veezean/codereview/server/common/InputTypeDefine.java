@@ -3,7 +3,7 @@ package com.veezean.codereview.server.common;
 /**
  * 输入类型定义
  *
- * @author Veezean, 公众号 @架构悟道
+ * @author Veezean
  * @since 2022/5/22
  */
 public enum InputTypeDefine {

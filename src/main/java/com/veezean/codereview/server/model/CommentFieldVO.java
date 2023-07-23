@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * 编辑场景对应评论字段
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2023/3/25
  */
 @Data

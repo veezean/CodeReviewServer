@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * 服务启动入口
  *
- * @author Veezean, 公众号 @架构悟道
+ * @author Veezean
  * @since 2021/4/25
  */
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)

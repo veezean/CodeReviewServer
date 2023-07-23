@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 /**
  * 供客户端配置时测试网络连接与验证用户名密码使用
  *
- * @author Veezean, 公众号 @架构悟道
+ * @author Veezean
  * @since 2021/4/25
  */
 @RestController
