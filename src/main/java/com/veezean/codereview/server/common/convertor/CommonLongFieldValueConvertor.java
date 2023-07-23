@@ -7,7 +7,7 @@ import org.apache.commons.lang.StringUtils;
 /**
  * <类功能简要描述>
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2023/5/30
  */
 public class CommonLongFieldValueConvertor implements FieldValueConvertor<Long> {

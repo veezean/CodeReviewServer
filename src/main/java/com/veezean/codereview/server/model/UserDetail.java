@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 应用层使用的用户详情信息
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2023/3/22
  */
 @Data

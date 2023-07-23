@@ -10,7 +10,7 @@ import lombok.Getter;
 /**
  * 系统预置评审字段code值
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2023/5/30
  */
 @AllArgsConstructor

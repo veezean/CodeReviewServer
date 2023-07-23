@@ -16,7 +16,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 /**
  * <类功能简要描述>
  *
- * @author Veezean, 公众号 @架构悟道
+ * @author Veezean
  * @since 2023/3/7
  */
 @Configuration

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 /**
  * 用户列表信息下拉框内容生成器
  *
- * @author Veezean, 公众号 @架构悟道
+ * @author Veezean
  * @since 2023/3/12
  */
 @Component

@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * <类功能简要描述>
  *
- * @author Veezean, 公众号 @架构悟道
+ * @author Veezean
  * @since 2023/3/5
  */
 @Service

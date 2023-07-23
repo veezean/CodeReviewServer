@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * <类功能简要描述>
  *
- * @author Veezean, 公众号 @架构悟道
+ * @author Veezean
  * @since 2021/4/26
  */
 @Repository

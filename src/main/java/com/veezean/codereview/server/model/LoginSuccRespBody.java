@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * 用户登录成功响应体
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2023/3/22
  */
 @Data
