@@ -1,41 +1,95 @@
 # CodeReviewServer
 
-> 
-> 该Server端构建的时候，为尽快构建完成，简化界面部分开发，采用了Erupt前后端一体化框架进行界面生成。使用了一段时间发现较多定制化想法难以实施，所以目前正在使用SpringBoot + Vue 构建一个更完善的后端管理界面，计划4月初会更新，如有需要，请关注。
-> 
+> 新版本代码已经正式合入到主干分支，欢迎使用。
+> 整体采用 `SpringBoot + Vue` 技术架构实现。
 
 
-本仓库为IDEA代码检视插件配套使用的服务端。支持从IDEA插件中将评审意见上传到服务端，或者从服务端拉取别人提交的评审意见下来，以及维护评审人员、项目信息、历史评审意见、评审意见确认信息等等功能。
+## 一种更简单高效的代码review体验
 
-本服务端需要配合IDEA插件一起使用，插件可以从下面信息中获取。
+在我们的项目开发过程中，代码`review`是不可或缺的一个环节。虽然市面上已有一些成熟的代码`review`系统，或者是基于`git`提交记录进行的在线review操作，也许其功能更强大，但是使用上总是不够方便：
+
+- 代码不同于小说审稿，纯文本类型的阅读式review模式，很难发现逻辑层面的问题
+- 代码review完成之后，针对评审意见的逐个确认、跟踪闭环也比较麻烦
+- 平时项目开发的时候没法同步记录发现的问题
+- ...
+
+对于程序员来说，`IDEA`中查看代码才是最佳模式，在IDEA中可以跳转、搜索、分析调用，然后才能检视出深层的代码逻辑问题。此外，平时开发过程中，如果写代码的时候发现一些问题点，如果可以直接在IDEA中记录下来，然后交由对应责任人去修改，这样的代码review体验岂不是更方便、更高效。
+
+基于此想法，利用业余时间开发了IDEA配套的代码review插件，上到应用时长之后，也收获了相对比较高的评分，也收到很多同学的私信赞扬，说明程序员“**苦code review久矣**”！
+
+![](https://pics.codingcoder.cn/pics/202307222357867.png)
+
+当然，随着使用的同学数量增加，也收到越来越多的同学反馈希望加一个团队协作能力，这样可以方便团队内评审活动的开展。
+
+于是，在原有的本地review基础上，增加了插件配套的服务端，实现了团队内成员间代码review意见的管理、统计以及彼此的协同。
+
+![](https://pics.codingcoder.cn/pics/202307230012353.png)
+
+## 服务端安装部署
+
+好了，如果你正在为团队寻找一个简单、高效的代码检视协同工具，也已经准备好体验一番，下面就可以开始动手部署服务端应用啦。
+
+### 依赖条件
+
+- JDK8+
+- MySQL
+- MongoDB
+
+### 部署说明
+
+1. 准备好MySQL、MongoDB
+2. 执行`initial_db.sql`对MySQL进行初始化操作
+3. 修改`application-PROD.properties`文件中的配置，填写正确的数据库连接信息
+4. 启动服务
+5. 访问`http://localhost:23560`可以查看到登录界面，使用预置账号`codereview/123456`可以登录进入系统。
 
 
-**配套IDEA插件**
+## 服务端使用教程
 
-本仓库的服务端代码，配套IDEA代码检视插件进行使用，插件可从如下地址获取：
+### 详细教程
 
-- [github仓库地址](https://github.com/veezean/IntellijIDEA-CodeReview-Plugin)
+点击查看 [服务端使用教程](https://blog.codingcoder.cn/post/codereviewserverdeploydoc.html)
 
-- [gitee仓库地址](https://gitee.com/veezean/IntellijIDEA-CodeReview-Plugin)
+### 界面示意图
 
-**版本说明**
+![](https://pics.codingcoder.cn/pics/202307230022440.png)
 
-本服务端属于前后端一体化部署，提供了统一服务端，用于团队协作场景，可以对用户、部门、项目以及评审记录进行一个统一的管理。服务端还支持定制统一的评审字段信息，然后下发给所有的客户端进行配置更新，保证团队内按照统一的要求进行代码检视动作。
+![](https://pics.codingcoder.cn/pics/202307230022600.png)
 
-![](https://pics.codingcoder.cn/pics/202303122311867.png)
+![](https://pics.codingcoder.cn/pics/202307230023029.png)
 
-![](https://pics.codingcoder.cn/pics/202303122311188.png)
+![](https://pics.codingcoder.cn/pics/202307230023684.png)
 
-**部署方式**
 
-1. 新建MySQL数据库，然后将sql目录下的数据库初始化脚本刷入
-2. 修改`application-PROD.properties`配置文件中的数据库连接信息
-3. 启动SpringBoot服务
-4. 打开浏览器，访问 `http://127.0.0.1:23560` 即可访问。初始登录信息：
-    >     用户名：    codereview
-    >     密码：      123456
-5. 如需访问服务端接口文档，访问 `http://127.0.0.1:23560/swagger-ui/index.html`
+### 源码获取
+
+配套界面采用vue开发，如果需要定制界面功能，可以从如下途径获取前端源码：
+
+- [Github源码仓库](https://github.com/veezean/CodeReviewServer_Portal)
+
+- [Gitee镜像仓库](https://gitee.com/veezean/CodeReviewServer_Portal)
+
+
+## 配套IDEA插件
+
+### 通过IDEA plugin marketplace获取并安装
+
+这是最简单的一种方式，在IDEA插件市场搜索安装即可：
+
+![](https://pics.codingcoder.cn/pics/202307230017131.png)
+
+### 源码编译定制开发
+
+您也可以直接获取IDEA配套源码，进行二次开发。点击获取IDEA源码：
+
+- [Github源码仓库](https://github.com/veezean/IntellijIDEA-CodeReview-Plugin)
+
+- [Gitee镜像仓库](https://gitee.com/veezean/IntellijIDEA-CodeReview-Plugin)
 
 **问题&建议**
 
 新版本上线，如果发现有bug或者有功能建议，欢迎提issue单，或者通过公众号`@架构悟道`联系到作者。
+
+当然，如果觉得本软件帮助到了您的工作，也欢迎支持我继续更新维护下去~
+
+![](https://pics.codingcoder.cn/pics/202307231540263.png)
