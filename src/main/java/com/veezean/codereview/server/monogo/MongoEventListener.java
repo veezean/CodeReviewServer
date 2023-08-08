@@ -85,7 +85,6 @@ public class MongoEventListener extends AbstractMongoEventListener<ReviewComment
             commentNoticeEvent.setOperateType(CommentOperateType.MODIFY);
             commentNoticeEvent.setOperator(operator);
 
-
             NoticeCache.addNoticeEvent(commentNoticeEvent);
         }
 
