@@ -18,6 +18,7 @@ public class CommentNoticeEvent {
     private CommentOperateType operateType;
     private ValuePair operator;
     private ValuePair noticeRecevier;
+    private ValuePair reviewer;
     private String commentId;
 
     public Optional<String> findReceiver() {
