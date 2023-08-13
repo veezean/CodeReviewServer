@@ -3,6 +3,9 @@ package com.veezean.codereview.server.common;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * <类功能简要描述>
  *
@@ -19,4 +22,9 @@ public enum CommentOperateType {
     private int value;
     private String desc;
 
+    public static CommentOperateType of(int value) {
+        return Arrays.stream(values()).filter(commentOperateType -> commentOperateType.getValue() == value)
+                .findFirst()
+                .orElse(COMMIT);
+    }
 }

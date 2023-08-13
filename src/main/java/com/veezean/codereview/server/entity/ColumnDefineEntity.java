@@ -84,7 +84,7 @@ public class ColumnDefineEntity {
      */
     private boolean editableInConfirmPage;
     /**
-     * 输入类型，单行(TEXT)、多行（TEXTAREA）、下拉框（COMBO_BOX）等
+     * 输入类型，单行(TEXT)、多行（TEXTAREA）、下拉框（COMBO_BOX）、日期（DATE）等
      */
     private String inputType;
 

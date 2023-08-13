@@ -2,6 +2,7 @@ package com.veezean.codereview.server.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
+import com.alibaba.fastjson.JSON;
 import com.veezean.codereview.server.common.*;
 import com.veezean.codereview.server.entity.ColumnDefineEntity;
 import com.veezean.codereview.server.model.*;
@@ -154,7 +155,7 @@ public class MongoDbReviewCommentService {
                 resultMap -> {
                     resultMap.put(SystemCommentFieldKey.CONFIRM_RESULT.getCode(),
                             ValuePair.build(CommonConsts.UNCONFIRMED,
-                            "待确认"));
+                                    "待确认"));
                     String dateTime = DateUtil.formatDateTime(new Date());
                     resultMap.put(SystemCommentFieldKey.REVIEW_DATE.getCode(), ValuePair.build(dateTime, dateTime));
                     UserDetail currentUser = CurrentUserHolder.getCurrentUser();
@@ -163,6 +164,10 @@ public class MongoDbReviewCommentService {
                     );
                 });
 
+        // 保持与client端处理逻辑一致，新增的时候dataVersion也+1
+        commentEntity.increaseDataVersion();
+        // 记录下本次操作类型，方便后续通知发送
+        commentEntity.setLatestOperateType(CommentOperateType.COMMIT.getValue());
         // 存储到数据库中,此处直接存储，不做字段内容校验
         reviewCommentRepository.save(commentEntity);
     }
@@ -179,6 +184,8 @@ public class MongoDbReviewCommentService {
                 resultMap -> {
                 });
         commentEntity.increaseDataVersion();
+        // 记录下本次操作类型，方便后续通知发送
+        commentEntity.setLatestOperateType(CommentOperateType.MODIFY.getValue());
         // 存储到数据库中,此处直接存储，不做字段内容校验
         reviewCommentRepository.save(commentEntity);
     }
@@ -205,6 +212,8 @@ public class MongoDbReviewCommentService {
                     );
                 });
         commentEntity.increaseDataVersion();
+        // 记录下本次操作类型，方便后续通知发送
+        commentEntity.setLatestOperateType(CommentOperateType.CONFIRM.getValue());
         // 存储到数据库中,此处直接存储，不做字段内容校验
         reviewCommentRepository.save(commentEntity);
     }
@@ -253,9 +262,12 @@ public class MongoDbReviewCommentService {
     public void deleteComment(String identifier) {
         // 软删除
         ReviewCommentEntity commentEntity = reviewCommentRepository.findFirstByIdAndStatus(identifier, NORMAL);
-        if (commentEntity != null) {
-            commentEntity.setStatus(DELETED);
+        if (commentEntity == null) {
+            return;
         }
+        commentEntity.setStatus(DELETED);
+        // 记录下本次操作类型，方便后续通知发送
+        commentEntity.setLatestOperateType(CommentOperateType.DELETE.getValue());
         reviewCommentRepository.save(commentEntity);
     }
 
@@ -264,7 +276,11 @@ public class MongoDbReviewCommentService {
         // 软删除
         List<ReviewCommentEntity> commentEntities = reviewCommentRepository.findAllByIdInAndStatus(commentIds, NORMAL);
         if (commentEntities != null) {
-            commentEntities.forEach(reviewCommentEntity -> reviewCommentEntity.setStatus(DELETED));
+            commentEntities.forEach(reviewCommentEntity -> {
+                // 记录下本次操作类型，方便后续通知发送
+                reviewCommentEntity.setLatestOperateType(CommentOperateType.DELETE.getValue());
+                reviewCommentEntity.setStatus(DELETED);
+            });
             reviewCommentRepository.saveAll(commentEntities);
         }
 
@@ -285,9 +301,9 @@ public class MongoDbReviewCommentService {
         long count = mongoTemplate.count(query, ReviewCommentEntity.class);
         List<Map<String, String>> commentEntities =
                 mongoTemplate.find(query
-                                .skip((pageable.getPageNumber() - 1) * pageable.getPageSize())
-                                .limit(pageable.getPageSize()),
-                        ReviewCommentEntity.class)
+                                        .skip((long) (pageable.getPageNumber() - 1) * pageable.getPageSize())
+                                        .limit(pageable.getPageSize()),
+                                ReviewCommentEntity.class)
                         .stream()
                         .map(entity -> {
                             Map<String, String> result = new HashMap<>();
@@ -344,6 +360,13 @@ public class MongoDbReviewCommentService {
         commitComment.getComments().forEach(reviewCommentEntity -> {
             ReviewCommentEntity existEntity =
                     reviewCommentRepository.findFirstByIdAndStatus(reviewCommentEntity.getId(), NORMAL);
+
+            if (existEntity != null && !hasModified(existEntity, reviewCommentEntity)) {
+                // 提交的内容没有任何变化，直接忽略
+                log.info("no content changed, ignore this comment...id:{}", existEntity.getId());
+                return;
+            }
+
             if (existEntity != null && existEntity.getDataVersion() != reviewCommentEntity.getDataVersion()) {
                 result.addFailedId(reviewCommentEntity.getId());
             } else {
@@ -352,15 +375,18 @@ public class MongoDbReviewCommentService {
                 // 空值保护，防止客户端提交异常数据上来
                 reviewCommentEntity.getValues().forEach((s, valuePair) -> {
                     if (valuePair == null) {
-                        valuePair =  new ValuePair();
+                        valuePair = new ValuePair();
                     }
                     reviewCommentEntity.getValues().put(s, valuePair);
                 });
+                // 设置此条记录的提交类型
+                reviewCommentEntity.setLatestOperateType(clientOperateType(existEntity, reviewCommentEntity).getValue());
                 passEntitiespassEntities.add(reviewCommentEntity);
                 result.putVersion(reviewCommentEntity.getId(), reviewCommentEntity.getDataVersion());
             }
         });
         reviewCommentRepository.saveAll(passEntitiespassEntities);
+        log.info("本次提交{}条记录，最终成功入库{}条记录", commitComment.getComments().size(), passEntitiespassEntities.size());
         if (result.getFailedIds().isEmpty()) {
             result.setSuccess(true);
             return result;
@@ -369,6 +395,32 @@ public class MongoDbReviewCommentService {
             log.error("存在数据提交失败：{}", result.getFailedIds());
         }
         return result;
+    }
+
+    /**
+     * 判断提交的内容与DB中已有内容是否有变更
+     *
+     * @param existEntity
+     * @param reviewCommentEntity
+     * @return
+     */
+    private boolean hasModified(ReviewCommentEntity existEntity, ReviewCommentEntity reviewCommentEntity) {
+        return !StringUtils.equals(JSON.toJSONString(existEntity.getValues()),
+                JSON.toJSONString(reviewCommentEntity.getValues()));
+    }
+
+    private CommentOperateType clientOperateType(ReviewCommentEntity existEntity,
+                                                 ReviewCommentEntity reviewCommentEntity) {
+        if (existEntity == null) {
+            return CommentOperateType.COMMIT;
+        }
+
+        if (!existEntity.findByKey(SystemCommentFieldKey.REAL_CONFIRMER).isPresent()
+                && reviewCommentEntity.findByKey(SystemCommentFieldKey.REAL_CONFIRMER).isPresent()) {
+            return CommentOperateType.CONFIRM;
+        }
+
+        return CommentOperateType.MODIFY;
     }
 
     public CommitComment clientQueryComments(ReviewQueryParams queryParams) {

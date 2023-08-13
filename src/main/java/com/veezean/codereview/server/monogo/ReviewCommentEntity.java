@@ -1,5 +1,6 @@
 package com.veezean.codereview.server.monogo;
 
+import com.veezean.codereview.server.common.CommentOperateType;
 import com.veezean.codereview.server.common.SystemCommentFieldKey;
 import com.veezean.codereview.server.model.ValuePair;
 import lombok.Data;
@@ -29,6 +30,11 @@ public class ReviewCommentEntity implements Serializable {
      * 服务端标记，客户端无需感知，客户端的数据一定是未删除的
      */
     private int status;
+
+    /**
+     * 最近一次的操作类型(用于通知消息推送使用)
+     */
+    private int latestOperateType;
 
     public void increaseDataVersion() {
         this.dataVersion++;
