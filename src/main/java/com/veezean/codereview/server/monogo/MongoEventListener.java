@@ -1,14 +1,15 @@
 package com.veezean.codereview.server.monogo;
 
 import com.veezean.codereview.server.common.CommentOperateType;
-import com.veezean.codereview.server.common.CommonConsts;
 import com.veezean.codereview.server.common.CurrentUserHolder;
 import com.veezean.codereview.server.common.SystemCommentFieldKey;
 import com.veezean.codereview.server.model.ValuePair;
 import com.veezean.codereview.server.notice.NoticeCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.mapping.event.*;
+import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
+import org.springframework.data.mongodb.core.mapping.event.AfterDeleteEvent;
+import org.springframework.data.mongodb.core.mapping.event.AfterSaveEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -27,32 +28,35 @@ public class MongoEventListener extends AbstractMongoEventListener<ReviewComment
 
     @Override
     public void onAfterSave(AfterSaveEvent<ReviewCommentEntity> event) {
-
         ReviewCommentEntity commentEntity = event.getSource();
         long dataVersion = commentEntity.getDataVersion();
         Optional<ValuePair> reviewer = commentEntity.findByKey(SystemCommentFieldKey.REVIEWER);
         Optional<ValuePair> assignConfirmer = commentEntity.findByKey(SystemCommentFieldKey.ASSIGN_CONFIRMER);
         Optional<ValuePair> realConfirmer = commentEntity.findByKey(SystemCommentFieldKey.REAL_CONFIRMER);
-        Optional<ValuePair> confirmResult = commentEntity.findByKey(SystemCommentFieldKey.CONFIRM_RESULT);
-
-        boolean unconfirmed =
-                confirmResult.isPresent() && CommonConsts.UNCONFIRMED.equals(confirmResult.get().getValue());
 
         CommentNoticeEvent commentNoticeEvent = new CommentNoticeEvent();
         commentNoticeEvent.setCommentId(commentEntity.getId());
-        if (dataVersion == 0L && unconfirmed && assignConfirmer.isPresent() && reviewer.isPresent()) {
-            // 新增
-            commentNoticeEvent.setOperateType(CommentOperateType.COMMIT);
-            commentNoticeEvent.setOperator(reviewer.get());
-            commentNoticeEvent.setNoticeRecevier(assignConfirmer.get());
+        CommentOperateType operateType = CommentOperateType.of(commentEntity.getLatestOperateType());
+        commentNoticeEvent.setOperateType(operateType);
+        switch (operateType) {
+            case COMMIT:
+            case MODIFY:
+                if (assignConfirmer.isPresent() && reviewer.isPresent()) {
+                    commentNoticeEvent.setOperator(reviewer.get());
+                    commentNoticeEvent.setNoticeRecevier(assignConfirmer.get());
+                }
+                break;
+            case CONFIRM:
+                if (realConfirmer.isPresent() && reviewer.isPresent()) {
+                    commentNoticeEvent.setOperator(realConfirmer.get());
+                    commentNoticeEvent.setNoticeRecevier(reviewer.get());
+                }
+                break;
+            default:
+                break;
+        }
 
-            NoticeCache.addNoticeEvent(commentNoticeEvent);
-        } else if (dataVersion != 0L && !unconfirmed && realConfirmer.isPresent() && reviewer.isPresent()) {
-            // 确认
-            commentNoticeEvent.setOperateType(CommentOperateType.COMMIT);
-            commentNoticeEvent.setOperator(realConfirmer.get());
-            commentNoticeEvent.setNoticeRecevier(reviewer.get());
-
+        if (commentNoticeEvent.canNotice()) {
             NoticeCache.addNoticeEvent(commentNoticeEvent);
         }
 

@@ -9,6 +9,7 @@ package com.veezean.codereview.server.common;
 public enum InputTypeDefine {
     TEXT("TEXT"),
     TEXT_AREA("TEXTAREA"),
+    DATE("DATE"),
     COMBO_BOX("COMBO_BOX");
 
     private String value;

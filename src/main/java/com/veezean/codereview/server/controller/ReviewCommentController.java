@@ -34,7 +34,7 @@ public class ReviewCommentController {
     @PostMapping("/commitComments")
     @ApiOperation("上传评审意见")
     public Response<CommitResult> commitComments(@RequestBody CommitComment commitComment) {
-        log.info("收到提交评审信息请求：{}", commitComment);
+//        log.info("收到提交评审信息请求：{}", commitComment);
         CommitResult commitResult = mongoDbReviewCommentService.clientCommit(commitComment);
         return Response.simpleSuccessResponse(commitResult);
     }

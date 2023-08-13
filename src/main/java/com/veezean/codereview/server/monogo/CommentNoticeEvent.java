@@ -29,6 +29,10 @@ public class CommentNoticeEvent {
             String pattern = "由{0}提交的评审意见{1}，已指派给{2}，请关注。";
             return MessageFormat.format(pattern, operator, commentId, noticeRecevier);
         }
+        if (operateType == CommentOperateType.MODIFY) {
+            String pattern = "由{0}修改后的评审意见{1}，已指派给{2}，请关注。";
+            return MessageFormat.format(pattern, operator, commentId, noticeRecevier);
+        }
         if (operateType == CommentOperateType.CONFIRM) {
             String pattern = "由{0}提交的评审意见{1}，已被{2}确认完成，请关注。";
             return MessageFormat.format(pattern, operator, commentId, noticeRecevier);
@@ -37,6 +41,14 @@ public class CommentNoticeEvent {
             String pattern = "由{0}提交的评审意见{1}，已被{2}删除，请关注。";
             return MessageFormat.format(pattern, operator, commentId, noticeRecevier);
         }
-        return "";
+        return "操作类型不支持，请联系管理员";
+    }
+
+    /**
+     * 判断是否符合消息推送条件（发送、接收人员都不为空）
+     * @return
+     */
+    public boolean canNotice() {
+        return operator != null && noticeRecevier != null;
     }
 }
