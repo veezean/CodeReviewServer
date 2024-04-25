@@ -36,9 +36,6 @@ public class SystemController {
     @Autowired
     private UserService userService;
 
-//    @Autowired
-//    private CommentService commentService;
-
     @GetMapping("/checkConnection")
     @ApiOperation("服务器连接检查")
     public Response<String> checkServerConnection() {
@@ -73,21 +70,9 @@ public class SystemController {
     @GetMapping("/getSystemNotice")
     @ApiOperation("拉取当前系统的通知信息")
     public Response<List<NoticeBody>> getSystemNotice() {
-//        List<NoticeBody> myCommentNotices = commentService.getMyCommentNotice();
-//        List<NoticeBody> systemNotices = systemService.getSystemNotice();
-
         List<NoticeBody> noticeBodies = new ArrayList<>();
-//        noticeBodies.addAll(myCommentNotices);
-//        noticeBodies.addAll(systemNotices);
         return Response.simpleSuccessResponse(noticeBodies);
     }
-
-//    @PostMapping("/getUserShortInfoList")
-//    @ApiOperation("拉取用户列表")
-//    public Response<List<UserShortInfo>> getUserShortInfoList(@RequestBody ClientUserQueryReqBody reqBody) {
-//        List<UserShortInfo> userShortInfoList = userService.getUserShortInfoList(reqBody);
-//        return Response.simpleSuccessResponse(userShortInfoList);
-//    }
 
     @PostMapping("/mockNotice")
     @ApiOperation("通知服务模拟接口")

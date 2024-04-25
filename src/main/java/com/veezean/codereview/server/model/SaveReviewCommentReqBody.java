@@ -18,6 +18,7 @@ import java.util.Optional;
 public class SaveReviewCommentReqBody {
     private List<CommentFieldVO> fieldModelList;
     private long dataVersion;
+    private String codeType = "java";
 
     public String findIdentifier() {
         return getValueByKey(SystemCommentFieldKey.IDENTIFIER);

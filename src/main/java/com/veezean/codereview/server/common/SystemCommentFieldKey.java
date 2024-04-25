@@ -22,6 +22,7 @@ public enum SystemCommentFieldKey {
     CONFIRM_RESULT("confirmResult",  new CommonStringFieldValueConvertor()),
 
     REVIEWER("reviewer",  new CommonStringFieldValueConvertor()),
+    FILE_PATH("filePath",  new CommonStringFieldValueConvertor()),
     ASSIGN_CONFIRMER("assignConfirmer", new CommonStringFieldValueConvertor()),
     REAL_CONFIRMER("realConfirmer", new CommonStringFieldValueConvertor()),
     REVIEW_DATE("reviewDate", new CommonDateFieldValueConvertor()),
