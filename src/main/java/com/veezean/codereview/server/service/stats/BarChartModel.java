@@ -13,7 +13,7 @@ import java.util.List;
  * @since 2024/4/18
  */
 @Data
-public class BarChatModel {
+public class BarChartModel {
     /**
      * 图例
      */

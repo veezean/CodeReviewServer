@@ -1,15 +1,19 @@
 package com.veezean.codereview.server.service.stats;
 
+import com.veezean.codereview.server.common.SystemCommentFieldKey;
 import com.veezean.codereview.server.model.QueryStatReqBody;
 import com.veezean.codereview.server.model.StatResultData;
 import com.veezean.codereview.server.model.ValuePair;
+import com.veezean.codereview.server.service.ProjectService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -17,7 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * <类功能简要描述>
+ * 数据统计服务
  *
  * @author Wang Weiren
  * @since 2024/4/16
@@ -28,33 +32,43 @@ public class DataStatService {
     @Resource
     private MongoTemplate mongoTemplate;
 
-    public StatResultData stats(QueryStatReqBody reqBody) {
-        BarChatModel barChatModel = statByConfirmResult(reqBody);
-        BarChatModel reviewerChatModel = statByReviewer(reqBody);
+    @Resource
+    private ProjectService projectService;
 
+    public StatResultData stats(QueryStatReqBody reqBody) {
         StatResultData resultData = new StatResultData();
-        resultData.setConfirmResultStatResult(barChatModel);
-        resultData.setReviewerChatModel(reviewerChatModel);
+        resultData.setConfirmResultChartModel(singleFieldStat(reqBody, "confirmResult"));
+        resultData.setReviewerChartModel(singleFieldStat(reqBody, "reviewer"));
+        resultData.setProjectChartModel(singleFieldStat(reqBody, "projectId"));
+        resultData.setRealConfirmerChartModel(singleFieldStat(reqBody, "realConfirmer"));
         return resultData;
     }
 
-    private List<StatResult> stats(String... aggregateFields) {
+    private List<StatResult> stats(QueryStatReqBody queryParams, String... aggregateFields) {
+        // 聚合操作
+        List<AggregationOperation> operations = new ArrayList<>();
+
+        // 添加过滤条件
+        operations.add(Aggregation.match(buildListQuery(queryParams)));
+        // 添加聚合条件
         Map<String, String> fieldMap = Arrays.stream(aggregateFields)
                 .filter(StringUtils::isNotEmpty)
                 .collect(Collectors.toMap(s -> "values." + s, s -> s, (s, s2) -> s));
         String[] groupFields = fieldMap.keySet().toArray(new String[]{});
         GroupOperation groupOperation = Aggregation.group(groupFields);
-
         Set<Map.Entry<String, String>> entries = fieldMap.entrySet();
         for (Map.Entry<String, String> entry : entries) {
             groupOperation = groupOperation.first(entry.getKey()).as(entry.getValue());
         }
         groupOperation = groupOperation.count().as("count");
+        operations.add(groupOperation);
 
-        AggregationResults<Document> commentStats = mongoTemplate.aggregate(Aggregation.newAggregation(groupOperation),
-                "review_comment",
-                Document.class
-        );
+        // 执行操作
+        AggregationResults<Document> commentStats =
+                mongoTemplate.aggregate(Aggregation.newAggregation(operations),
+                        "review_comment",
+                        Document.class
+                );
         return commentStats.getMappedResults()
                 .stream()
                 .map(document -> {
@@ -68,50 +82,57 @@ public class DataStatService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 评审意见确认结果统计
-     *
-     * @param reqBody
-     * @return
-     */
-    private BarChatModel statByConfirmResult(QueryStatReqBody reqBody) {
-        List<StatResult> mappedResults = stats("confirmResult");
+    private BarChartModel singleFieldStat(QueryStatReqBody reqBody, String fieldName) {
+        List<StatResult> mappedResults = stats(reqBody, fieldName);
         Map<String, Integer> series = new HashMap<>();
         for (StatResult result : mappedResults) {
             Optional.ofNullable(result)
                     .map(StatResult::getData)
-                    .map(stringValuePairMap -> stringValuePairMap.get("confirmResult"))
+                    .map(stringValuePairMap -> stringValuePairMap.get(fieldName))
                     .ifPresent(valuePair -> {
                         series.put(valuePair.getShowName(), result.getCount());
                     });
         }
-        BarChatModel barChatModel = new BarChatModel();
-        barChatModel.addSeriesData(BarChatSeriesData.create(new ArrayList<>(series.values())));
-        barChatModel.setXaxisData(new ArrayList<>(series.keySet()));
-        return barChatModel;
+        BarChartModel barChartModel = new BarChartModel();
+        barChartModel.addSeriesData(BarChatSeriesData.create(new ArrayList<>(series.values())));
+        barChartModel.setXaxisData(new ArrayList<>(series.keySet()));
+        return barChartModel;
     }
 
+
     /**
-     * 按照评审人员维度进行统计
+     * 构建过滤查询条件
      *
-     * @param reqBody
+     * @param queryParams 查询条件
      * @return
      */
-    private BarChatModel statByReviewer(QueryStatReqBody reqBody) {
-        List<StatResult> mappedResults = stats("reviewer");
-        Map<String, Integer> series = new HashMap<>();
-        for (StatResult result : mappedResults) {
-            Optional.ofNullable(result)
-                    .map(StatResult::getData)
-                    .map(stringValuePairMap -> stringValuePairMap.get("reviewer"))
-                    .ifPresent(valuePair -> {
-                        series.put(valuePair.getShowName(), result.getCount());
-                    });
+    private Criteria buildListQuery(QueryStatReqBody queryParams) {
+        Criteria criteria = Criteria.where("status").is(0);
+        if (queryParams != null) {
+
+            if (StringUtils.isNotEmpty(queryParams.getConfirmResult())) {
+                criteria.and("values." + SystemCommentFieldKey.CONFIRM_RESULT.getCode() + ".value").is(queryParams.getConfirmResult());
+            }
+            if (StringUtils.isNotEmpty(queryParams.getCommitUser())) {
+                criteria.and("values." + SystemCommentFieldKey.REVIEWER.getCode() + ".value").is(queryParams.getCommitUser());
+            }
+            if (StringUtils.isNotEmpty(queryParams.getAssignConfirmUser())) {
+                criteria.and("values." + SystemCommentFieldKey.ASSIGN_CONFIRMER.getCode() + ".value").is(queryParams.getAssignConfirmUser());
+            }
+            if (StringUtils.isNotEmpty(queryParams.getRealConfirmUser())) {
+                criteria.and("values." + SystemCommentFieldKey.REAL_CONFIRMER.getCode() + ".value").is(queryParams.getRealConfirmUser());
+            }
+            if (queryParams.getProjectId() != null && queryParams.getProjectId() > 0L) {
+                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").is(String.valueOf(queryParams.getProjectId()));
+            } else if (queryParams.getDepartmentId() != null && queryParams.getDepartmentId() > 0L) {
+                // 如果指定了部门，则限定在部门内的项目中查询
+                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(projectService.queryProjectInDept(queryParams.getDepartmentId() + "")
+                        .stream()
+                        .map(projectEntity -> String.valueOf(projectEntity.getId()))
+                        .collect(Collectors.toList()));
+            }
         }
-        BarChatModel barChatModel = new BarChatModel();
-        barChatModel.addSeriesData(BarChatSeriesData.create(new ArrayList<>(series.values())));
-        barChatModel.setXaxisData(new ArrayList<>(series.keySet()));
-        return barChatModel;
+        return criteria;
     }
 
 }

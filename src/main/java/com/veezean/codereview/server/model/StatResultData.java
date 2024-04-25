@@ -1,7 +1,6 @@
 package com.veezean.codereview.server.model;
 
-import com.veezean.codereview.server.service.stats.BarChatModel;
-import com.veezean.codereview.server.service.stats.StatResult;
+import com.veezean.codereview.server.service.stats.BarChartModel;
 import lombok.Data;
 
 /**
@@ -15,6 +14,8 @@ public class StatResultData {
     /**
      * 评审意见确认结果统计
      */
-    private BarChatModel confirmResultStatResult;
-    private BarChatModel reviewerChatModel;
+    private BarChartModel confirmResultChartModel;
+    private BarChartModel reviewerChartModel;
+    private BarChartModel realConfirmerChartModel;
+    private BarChartModel projectChartModel;
 }
