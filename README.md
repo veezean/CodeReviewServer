@@ -4,6 +4,12 @@
 > 整体采用 `SpringBoot + Vue` 技术架构实现。
 
 
+---
+
+V4.1.1版本正式发布，更新内容： [点击查看](https://mp.weixin.qq.com/s/yTR0iTDNGcpzQqvbS7DkjQ)
+
+---
+
 ## 一种更简单高效的代码review体验
 
 在我们的项目开发过程中，代码`review`是不可或缺的一个环节。虽然市面上已有一些成熟的代码`review`系统，或者是基于`git`提交记录进行的在线review操作，也许其功能更强大，但是使用上总是不够方便：
