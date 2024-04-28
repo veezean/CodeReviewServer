@@ -1,5 +1,6 @@
 package com.veezean.codereview.server.common;
 
+import com.veezean.codereview.server.entity.RoleEntity;
 import com.veezean.codereview.server.model.UserDetail;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,5 +24,11 @@ public class CurrentUserHolder {
 
     public static UserDetail getCurrentUser() {
         return CURRENT_USER.get();
+    }
+
+    public static boolean isAdminRole() {
+        return CurrentUserHolder.getCurrentUser().getRoles().stream()
+                .map(RoleEntity::getRoleCode)
+                .anyMatch(CommonConsts.ADMIN_ROLE::equals);
     }
 }

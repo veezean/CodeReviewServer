@@ -1,5 +1,6 @@
 package com.veezean.codereview.server.controller;
 
+import com.veezean.codereview.server.common.CurrentUserHolder;
 import com.veezean.codereview.server.model.ProjectBaseInfo;
 import com.veezean.codereview.server.model.Response;
 import com.veezean.codereview.server.service.ProjectService;
@@ -31,7 +32,7 @@ public class ProjectController {
     @GetMapping("/getMyProjects")
     @ApiOperation("拉取我可以查看到的所有项目列表信息")
     public Response<List<ProjectBaseInfo>> getMyProjects() {
-        List<ProjectBaseInfo> projectBaseInfos = projectService.getMyProjects();
+        List<ProjectBaseInfo> projectBaseInfos = projectService.getUserAccessableProjects();
         return Response.simpleSuccessResponse(projectBaseInfos);
     }
 

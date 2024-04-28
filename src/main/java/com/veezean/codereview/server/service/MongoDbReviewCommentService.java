@@ -7,6 +7,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.veezean.codereview.server.common.*;
+import com.veezean.codereview.server.entity.BaseEntity;
 import com.veezean.codereview.server.entity.ColumnDefineEntity;
 import com.veezean.codereview.server.model.*;
 import com.veezean.codereview.server.monogo.ReviewCommentEntity;
@@ -387,7 +388,7 @@ public class MongoDbReviewCommentService {
             ExcelWriter excelWriter = ExcelUtil.getWriter(true);
             excelWriter.getStyleSet().setBorder(BorderStyle.THIN, IndexedColors.GREY_50_PERCENT);
             for (int i = 0; i < fieldDefines.size(); i++) {
-                excelWriter.getSheet().setColumnWidth(i, 256*fieldDefines.get(i).getExcelColumnWidth());
+                excelWriter.getSheet().setColumnWidth(i, 256 * fieldDefines.get(i).getExcelColumnWidth());
             }
             excelWriter.getCellStyle().setWrapText(true);
             excelWriter.getCellStyle().setAlignment(HorizontalAlignment.LEFT);
@@ -401,6 +402,10 @@ public class MongoDbReviewCommentService {
 
     private Query buildListQuery(QueryCommentReqBody queryParams) {
         Criteria criteria = Criteria.where("id").ne(null).and("status").is(0);
+
+        // 自己有权限查看的项目对应的数据
+        List<String> bindedProjectIds = projectService.getUserAccessableProjectIds();
+
         if (queryParams != null) {
 
             if (StringUtils.isNotEmpty(queryParams.getConfirmResult())) {
@@ -419,15 +424,32 @@ public class MongoDbReviewCommentService {
                 criteria.and("values." + SystemCommentFieldKey.REAL_CONFIRMER.getCode() + ".value").is(queryParams.getRealConfirmUser());
             }
             if (queryParams.getProjectId() != null && queryParams.getProjectId() > 0L) {
-                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").is(String.valueOf(queryParams.getProjectId()));
-            } else if (queryParams.getDepartmentId() != null && queryParams.getDepartmentId() > 0L) {
+                String projId = String.valueOf(queryParams.getProjectId());
+                if (bindedProjectIds.contains(projId)) {
+                    // 如果指定具体项目，则限制查看指定的项目
+                    bindedProjectIds.clear();
+                    bindedProjectIds.add(projId);
+                } else {
+                    // 异常兜底，传入的项目是自己无权查看的项目
+                    bindedProjectIds.clear();
+                }
+            }
+
+            if (queryParams.getDepartmentId() != null && queryParams.getDepartmentId() > 0L) {
                 // 如果指定了部门，则限定在部门内的项目中查询
-                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(projectService.queryProjectInDept(queryParams.getDepartmentId() + "")
+                List<String> deptProjIds = projectService.queryAccessableProjectInDept(queryParams.getDepartmentId() + "")
                         .stream()
-                        .map(projectEntity -> String.valueOf(projectEntity.getId()))
-                        .collect(Collectors.toList()));
+                        .map(BaseEntity::getId)
+                        .map(String::valueOf)
+                        .filter(bindedProjectIds::contains)
+                        .collect(Collectors.toList());
+                bindedProjectIds.clear();
+                bindedProjectIds.addAll(deptProjIds);
             }
         }
+
+        // 固定限制只能看自己有权限的部分(取有权访问的项目+手动选择的项目过滤条件的交集)
+        criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(bindedProjectIds);
 
         return new Query(criteria);
     }

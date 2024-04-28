@@ -1,6 +1,10 @@
 package com.veezean.codereview.server.model;
 
+import com.veezean.codereview.server.entity.DepartmentEntity;
+import com.veezean.codereview.server.entity.UserEntity;
 import lombok.Data;
+
+import java.util.Optional;
 
 /**
  * <类功能简要描述>
@@ -13,4 +17,14 @@ public class UserShortInfo {
     private String account;
     private String userName;
     private String department;
+
+    public static UserShortInfo from(UserEntity userEntity) {
+        UserShortInfo userShortInfo = new UserShortInfo();
+        userShortInfo.setAccount(userEntity.getAccount());
+        userShortInfo.setUserName(userEntity.getName());
+        Optional.ofNullable(userEntity.getDepartment())
+                .map(DepartmentEntity::getName)
+                .ifPresent(userShortInfo::setDepartment);
+        return userShortInfo;
+    }
 }

@@ -1,5 +1,7 @@
 package com.veezean.codereview.server.service.stats;
 
+import com.veezean.codereview.server.common.CommonConsts;
+import com.veezean.codereview.server.common.CurrentUserHolder;
 import com.veezean.codereview.server.common.SystemCommentFieldKey;
 import com.veezean.codereview.server.model.QueryStatReqBody;
 import com.veezean.codereview.server.model.StatResultData;
@@ -14,6 +16,7 @@ import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -23,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * 数据统计服务
  *
- * @author Wang Weiren
+ * @author Veezean
  * @since 2024/4/16
  */
 @Service
@@ -126,13 +129,53 @@ public class DataStatService {
                 criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").is(String.valueOf(queryParams.getProjectId()));
             } else if (queryParams.getDepartmentId() != null && queryParams.getDepartmentId() > 0L) {
                 // 如果指定了部门，则限定在部门内的项目中查询
-                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(projectService.queryProjectInDept(queryParams.getDepartmentId() + "")
+                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(projectService.queryAccessableProjectInDept(queryParams.getDepartmentId() + "")
                         .stream()
                         .map(projectEntity -> String.valueOf(projectEntity.getId()))
                         .collect(Collectors.toList()));
             }
         }
         return criteria;
+    }
+
+    public HomePageStatData homestat() {
+        HomePageStatData statData = new HomePageStatData();
+
+        String currentUser = CurrentUserHolder.getCurrentUser().getAccount();
+        // 等我确认
+        Criteria criteria = Criteria.where("status").is(0);
+        criteria.and("values." + SystemCommentFieldKey.CONFIRM_RESULT.getCode() + ".value").is(CommonConsts.UNCONFIRMED);
+        criteria.and("values." + SystemCommentFieldKey.ASSIGN_CONFIRMER.getCode() + ".value").is(currentUser);
+        statData.setWaitingMeConfirm(statCount(criteria));
+
+        // 我提交的
+        Criteria criteria2 = Criteria.where("status").is(0);
+        criteria2.and("values." + SystemCommentFieldKey.REVIEWER.getCode() + ".value").is(currentUser);
+        statData.setMyCommitted(statCount(criteria2));
+
+        // 我确认的
+        Criteria criteria3 = Criteria.where("status").is(0);
+        criteria3.and("values." + SystemCommentFieldKey.REAL_CONFIRMER.getCode() + ".value").is(currentUser);
+        statData.setMyConfirmed(statCount(criteria3));
+
+        // 全部意见
+        Criteria criteria4 = Criteria.where("status").is(0);
+        statData.setAllComments(statCount(criteria4));
+
+        // 等待确认
+        Criteria criteria5 = Criteria.where("status").is(0);
+        criteria5.and("values." + SystemCommentFieldKey.CONFIRM_RESULT.getCode() + ".value").is(CommonConsts.UNCONFIRMED);
+        statData.setWaitingConfirm(statCount(criteria5));
+
+        // 项目总数
+        statData.setTotalProjects(projectService.count());
+
+        return statData;
+    }
+
+
+    private long statCount(Criteria criteria) {
+        return mongoTemplate.count(new Query(criteria), "review_comment");
     }
 
 }

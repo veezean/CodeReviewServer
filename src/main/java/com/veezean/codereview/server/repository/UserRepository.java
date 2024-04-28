@@ -19,5 +19,6 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     UserEntity findFirstByAccount(String account);
     List<UserEntity> findAllByDepartmentId(long deptId);
+    List<UserEntity> findAllByAccountIn(List<String> accounts);
     Page<UserEntity> findAllByDepartmentId(long deptId, Pageable pageable);
 }

@@ -17,6 +17,11 @@ public class CommonConsts {
 
     public static final String UNCONFIRMED = "unconfirmed";
 
+    /**
+     * 管理角色对应code值
+     */
+    public static final String ADMIN_ROLE = "admin";
+
     public static final String ALL_MENUS = "reviewcomments,mytodo,mycommitted,myconfirmed,all,servMgt,commentFields," +
             "enums,systemConfig,users,roles,depts,projs,reports,dashboard";
 
