@@ -1,9 +1,13 @@
 package com.veezean.codereview.server.service;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.poi.excel.ExcelUtil;
+import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.veezean.codereview.server.common.*;
+import com.veezean.codereview.server.entity.BaseEntity;
 import com.veezean.codereview.server.entity.ColumnDefineEntity;
 import com.veezean.codereview.server.model.*;
 import com.veezean.codereview.server.monogo.ReviewCommentEntity;
@@ -11,6 +15,7 @@ import com.veezean.codereview.server.monogo.ReviewCommentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,6 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -141,6 +148,17 @@ public class MongoDbReviewCommentService {
         });
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
+
+        // 根据后缀推测代码类型，如果不支持，默认为JAVA类型
+        String codeType = commentEntity.findByKey(SystemCommentFieldKey.FILE_PATH)
+                .map(ValuePair::getValue)
+                .map(FileNameUtil::extName)
+                .map(String::toLowerCase)
+                .map(CommonConsts.fileSuffixAndCodeTypeMaps::get)
+                .filter(StringUtils::isNotEmpty)
+                .orElse("java");
+        reqBody.setCodeType(codeType);
+
         return reqBody;
     }
 
@@ -320,8 +338,74 @@ public class MongoDbReviewCommentService {
         return PageBeanList.create(page, pageable);
     }
 
+
+    public void exportComments(QueryCommentReqBody queryParams, HttpServletResponse response) {
+        try (OutputStream outputStream = response.getOutputStream()) {
+            // 读取当前系统配置的字段数据,过滤出允许导出到excel中的数据
+            List<ColumnDefineEntity> fieldDefines = columnDefineService.queryColumns().collect(Collectors.toList())
+                    .stream()
+                    .filter(ColumnDefineEntity::isSupportInExcel)
+                    .sorted(Comparator.comparingInt(ColumnDefineEntity::getSortIndex))
+                    .collect(Collectors.toList());
+
+            // 根据过滤条件拉取数据，限制最大导出10000条数据
+            Query query = buildListQuery(queryParams);
+            List<List<String>> commentEntities =
+                    mongoTemplate.find(query.limit(10000), ReviewCommentEntity.class)
+                            .stream()
+                            .map(entity -> {
+                                // 对每一条评审记录进行处理
+                                Map<String, String> columnValueMap = new HashMap<>();
+                                // 对当条记录的各个字段进行排序
+                                entity.getValues().forEach((s, valuePair) -> {
+                                    columnValueMap.put(s,
+                                            commentFieldShowContentProducer.getColumnShowContent(valuePair));
+                                });
+
+                                // 按照指定顺序生成各个字段的值
+                                List<String> rowValues = new ArrayList<>();
+                                for (ColumnDefineEntity columnDefine : fieldDefines) {
+                                    String columnCode = columnDefine.getColumnCode();
+                                    rowValues.add(Optional.ofNullable(columnValueMap.get(columnCode)).orElse(""));
+                                }
+                                return rowValues;
+                            })
+                            .collect(Collectors.toList());
+
+            // 生成表头信息
+            List<String> headerNames = fieldDefines.stream()
+                    .map(ColumnDefineEntity::getShowName)
+                    .collect(Collectors.toList());
+            commentEntities.add(0, headerNames);
+
+            // 设置响应头信息
+            response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+            response.setHeader("Content-Disposition",
+                    "attachment;filename=review_comment_" + System.currentTimeMillis() + ".xlsx");
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8");
+
+            // 根据字段设置以及查询到的数据，写入excel中
+            ExcelWriter excelWriter = ExcelUtil.getWriter(true);
+            excelWriter.getStyleSet().setBorder(BorderStyle.THIN, IndexedColors.GREY_50_PERCENT);
+            for (int i = 0; i < fieldDefines.size(); i++) {
+                excelWriter.getSheet().setColumnWidth(i, 256 * fieldDefines.get(i).getExcelColumnWidth());
+            }
+            excelWriter.getCellStyle().setWrapText(true);
+            excelWriter.getCellStyle().setAlignment(HorizontalAlignment.LEFT);
+            excelWriter.write(commentEntities);
+            excelWriter.flush(outputStream);
+            excelWriter.close();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
     private Query buildListQuery(QueryCommentReqBody queryParams) {
         Criteria criteria = Criteria.where("id").ne(null).and("status").is(0);
+
+        // 自己有权限查看的项目对应的数据
+        List<String> bindedProjectIds = projectService.getUserAccessableProjectIds();
+
         if (queryParams != null) {
 
             if (StringUtils.isNotEmpty(queryParams.getConfirmResult())) {
@@ -340,15 +424,32 @@ public class MongoDbReviewCommentService {
                 criteria.and("values." + SystemCommentFieldKey.REAL_CONFIRMER.getCode() + ".value").is(queryParams.getRealConfirmUser());
             }
             if (queryParams.getProjectId() != null && queryParams.getProjectId() > 0L) {
-                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").is(String.valueOf(queryParams.getProjectId()));
-            } else if (queryParams.getDepartmentId() != null && queryParams.getDepartmentId() > 0L) {
+                String projId = String.valueOf(queryParams.getProjectId());
+                if (bindedProjectIds.contains(projId)) {
+                    // 如果指定具体项目，则限制查看指定的项目
+                    bindedProjectIds.clear();
+                    bindedProjectIds.add(projId);
+                } else {
+                    // 异常兜底，传入的项目是自己无权查看的项目
+                    bindedProjectIds.clear();
+                }
+            }
+
+            if (queryParams.getDepartmentId() != null && queryParams.getDepartmentId() > 0L) {
                 // 如果指定了部门，则限定在部门内的项目中查询
-                criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(projectService.queryProjectInDept(queryParams.getDepartmentId() + "")
+                List<String> deptProjIds = projectService.queryAccessableProjectInDept(queryParams.getDepartmentId() + "")
                         .stream()
-                        .map(projectEntity -> String.valueOf(projectEntity.getId()))
-                        .collect(Collectors.toList()));
+                        .map(BaseEntity::getId)
+                        .map(String::valueOf)
+                        .filter(bindedProjectIds::contains)
+                        .collect(Collectors.toList());
+                bindedProjectIds.clear();
+                bindedProjectIds.addAll(deptProjIds);
             }
         }
+
+        // 固定限制只能看自己有权限的部分(取有权访问的项目+手动选择的项目过滤条件的交集)
+        criteria.and("values." + SystemCommentFieldKey.PROJECT_ID.getCode() + ".value").in(bindedProjectIds);
 
         return new Query(criteria);
     }

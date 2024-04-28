@@ -10,13 +10,16 @@ import com.veezean.codereview.server.model.SaveDeptReqBody;
 import com.veezean.codereview.server.repository.DepartmentRepository;
 import com.veezean.codereview.server.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * <类功能简要描述>
@@ -62,6 +65,31 @@ public class DepartmentService {
                     tree.putExtra("label", departmentEntity.getName());
                     tree.putExtra("value", departmentEntity.getId());
                 });
+    }
+
+    /**
+     * 获取指定部门及其所有子节点ID信息（含自身）
+     * @param topDeptId
+     * @return
+     */
+    public List<Long> getAllChildrenDepts(Long topDeptId) {
+        List<Long> deptIds = new ArrayList<>();
+        if (topDeptId != null && topDeptId != 0L) {
+            deptIds.add(topDeptId);
+        }
+        List<Tree<Long>> deptTree = getDeptTree(topDeptId);
+        collectAllChildrenDepts(deptIds, deptTree);
+        return deptIds.stream().distinct().collect(Collectors.toList());
+    }
+
+    private void collectAllChildrenDepts(List<Long> deptIds, List<Tree<Long>> deptTree) {
+        if (CollectionUtils.isEmpty(deptTree)) {
+            return;
+        }
+        for (Tree<Long> tree : deptTree) {
+            deptIds.add(tree.getId());
+            collectAllChildrenDepts(deptIds, tree.getChildren());
+        }
     }
 
     @Transactional

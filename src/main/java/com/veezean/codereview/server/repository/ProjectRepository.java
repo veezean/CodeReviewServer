@@ -15,4 +15,6 @@ import java.util.List;
 @Repository
 public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
     List<ProjectEntity> findAllByDepartmentId(long deptId);
+    List<ProjectEntity> findAllByDepartmentIdIn(List<Long> deptIds);
+    List<ProjectEntity> findAllByIdIn(List<Long> projectIds);
 }

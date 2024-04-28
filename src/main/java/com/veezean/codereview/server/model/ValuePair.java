@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang.StringUtils;
+import org.bson.Document;
 
 import java.io.Serializable;
 
@@ -29,6 +30,15 @@ public class ValuePair implements Serializable {
         ValuePair pair = new ValuePair();
         pair.setValue(value);
         pair.setShowName(showName);
+        return pair;
+    }
+
+    public static ValuePair build(Document document) {
+        ValuePair pair = new ValuePair();
+        if (document != null) {
+            pair.setValue(document.getString("value"));
+            pair.setShowName(document.getString("showName"));
+        }
         return pair;
     }
 

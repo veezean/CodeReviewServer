@@ -21,10 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -53,6 +53,8 @@ public class UserService {
 
     @Autowired
     private RoleService roleService;
+    @Resource
+    private VersionMatchChecker versionMatchChecker;
 
     @PostConstruct
     public void init() {
@@ -257,6 +259,7 @@ public class UserService {
         respBody.setUserDetail(convertUserEntityToUserDetail(userEntity, false));
         respBody.setToken(tokenEntity.getToken());
         respBody.setExpireAt(tokenEntity.getExpireAt());
+        respBody.setVersion(versionMatchChecker.currentVersion());
         return respBody;
     }
 
@@ -356,15 +359,7 @@ public class UserService {
         return Optional.ofNullable(userEntities)
                 .orElse(new ArrayList<>())
                 .stream()
-                .map(userEntity -> {
-                    UserShortInfo userShortInfo = new UserShortInfo();
-                    userShortInfo.setAccount(userEntity.getAccount());
-                    userShortInfo.setUserName(userEntity.getName());
-                    Optional.ofNullable(userEntity.getDepartment())
-                            .map(DepartmentEntity::getName)
-                            .ifPresent(userShortInfo::setDepartment);
-                    return userShortInfo;
-                })
+                .map(UserShortInfo::from)
                 .collect(Collectors.toList());
     }
 }

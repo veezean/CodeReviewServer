@@ -1,6 +1,8 @@
 package com.veezean.codereview.server.common;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -15,7 +17,23 @@ public class CommonConsts {
 
     public static final String UNCONFIRMED = "unconfirmed";
 
+    /**
+     * 管理角色对应code值
+     */
+    public static final String ADMIN_ROLE = "admin";
+
     public static final String ALL_MENUS = "reviewcomments,mytodo,mycommitted,myconfirmed,all,servMgt,commentFields," +
             "enums,systemConfig,users,roles,depts,projs,reports,dashboard";
+
+    public static final Map<String, String> fileSuffixAndCodeTypeMaps = new HashMap<>();
+    static {
+        fileSuffixAndCodeTypeMaps.put("js", "javascript");
+        fileSuffixAndCodeTypeMaps.put("java", "java");
+        fileSuffixAndCodeTypeMaps.put("yaml", "yaml");
+        fileSuffixAndCodeTypeMaps.put("json", "json");
+        fileSuffixAndCodeTypeMaps.put("sql", "sql");
+        fileSuffixAndCodeTypeMaps.put("xml", "xml");
+        fileSuffixAndCodeTypeMaps.put("html", "html");
+    }
 
 }

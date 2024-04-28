@@ -3,9 +3,13 @@ package com.veezean.codereview.server.controller.server;
 import com.veezean.codereview.server.model.*;
 import com.veezean.codereview.server.monogo.ReviewCommentEntity;
 import com.veezean.codereview.server.service.MongoDbReviewCommentService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +21,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/server/comment")
+@Slf4j
 public class ServerReviewCommentController {
 
     @Autowired
@@ -86,5 +91,15 @@ public class ServerReviewCommentController {
         PageBeanList<Map<String, String>> pageBeanList =
                 mongoDbReviewCommentService.queryCommentDetails(request);
         return Response.simpleSuccessResponse(pageBeanList);
+    }
+
+    @PostMapping(value = "/exportComments")
+    public void exportComments(@RequestBody PageQueryRequest<QueryCommentReqBody> request,
+                                                 HttpServletResponse response) {
+        try {
+            mongoDbReviewCommentService.exportComments(request.getQueryParams(), response);
+        } catch (Exception e) {
+            log.error("failed to export data", e);
+        }
     }
 }
