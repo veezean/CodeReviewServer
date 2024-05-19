@@ -2,6 +2,7 @@ package com.veezean.codereview.server.service;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
@@ -86,7 +87,7 @@ public class MongoDbReviewCommentService {
             String code = commentFieldVO.getCode();
             // 新增场景，字段初始赋值
             if (SystemCommentFieldKey.IDENTIFIER.getCode().equals(code)) {
-                commentFieldVO.setValuePair(ValuePair.build(RandomUtil.randomString(20)));
+                commentFieldVO.setValuePair(ValuePair.build(IdUtil.getSnowflakeNextIdStr()));
             }
         });
         reqBody.setFieldModelList(commentFieldVOs);
@@ -533,6 +534,7 @@ public class MongoDbReviewCommentService {
                 break;
             case "待我确认":
                 reqBody.setAssignConfirmUser(CurrentUserHolder.getCurrentUser().getAccount());
+                reqBody.setConfirmResult(CommonConsts.UNCONFIRMED);
                 break;
             default:
                 break;
