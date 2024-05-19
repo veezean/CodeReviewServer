@@ -14,4 +14,5 @@ public class LoginSuccRespBody {
     private String token;
     private long expireAt;
     private String version;
+    private String versionDescUrl;
 }
