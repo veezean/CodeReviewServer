@@ -20,9 +20,16 @@ import java.util.Map;
 public class VersionMatchChecker {
 
     private static final Map<String, VersionRange> versionMatchDefines = new HashMap<>();
+    private static final Map<String, String> versionDescUrls = new HashMap<>();
 
     static {
         versionMatchDefines.put("4.1.1", VersionRange.of("4.0.3", ""));
+        versionMatchDefines.put("4.1.2", VersionRange.of("4.0.3", ""));
+        versionMatchDefines.put("4.1.3", VersionRange.of("4.0.3", ""));
+
+        versionDescUrls.put("4.1.1", "https://mp.weixin.qq.com/s/yTR0iTDNGcpzQqvbS7DkjQ");
+        versionDescUrls.put("4.1.2", "https://mp.weixin.qq.com/s/yTR0iTDNGcpzQqvbS7DkjQ");
+        versionDescUrls.put("4.1.3", "https://mp.weixin.qq.com/s/yTR0iTDNGcpzQqvbS7DkjQ");
     }
 
     @Value("${application.server.version:}")
@@ -35,6 +42,18 @@ public class VersionMatchChecker {
      */
     public String currentVersion() {
         return currentServerVersion;
+    }
+
+    public String getLatestDescUrl() {
+        return versionDescUrls.entrySet().stream()
+                .sorted((o1, o2) -> {
+                    int o1Version = getIntVersionSafely(o1.getKey());
+                    int o2Version = getIntVersionSafely(o2.getKey());
+                    return o2Version - o1Version;
+                })
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse("");
     }
 
     /**

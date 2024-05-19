@@ -260,6 +260,7 @@ public class UserService {
         respBody.setToken(tokenEntity.getToken());
         respBody.setExpireAt(tokenEntity.getExpireAt());
         respBody.setVersion(versionMatchChecker.currentVersion());
+        respBody.setVersionDescUrl(versionMatchChecker.getLatestDescUrl());
         return respBody;
     }
 
