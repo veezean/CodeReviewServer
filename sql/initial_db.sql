@@ -69,7 +69,8 @@ CREATE TABLE `t_comment_column` (
   `system_initialization` bit(1) NOT NULL,
   `dict_collection_code` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FK40nj1kkbgbmyghy2jd8xaap5x` (`dict_collection_code`)
+  UNIQUE KEY `idx_column_code` (`column_code`),
+  KEY `FK40nj1kkbgbmyghy2jd8xaap5x` (`dict_collection_code`) 
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 /*Data for the table `t_comment_column` */
