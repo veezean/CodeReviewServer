@@ -102,12 +102,22 @@ public class MongoDbReviewCommentService {
                 ColumnDefineEntity::isEditableInEditPage);
         commentFieldVOS.forEach(editModel -> {
             // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
-            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            ValuePair valuePair = columnCodeValues.remove(editModel.getCode());
             if (valuePair == null) {
                 valuePair = new ValuePair();
             }
             editModel.setValuePair(valuePair);
         });
+
+        // columnCodeValues中剩余的不在column定义的支持范围的字段，以不可见字段方式，始终透传，保证原始提交数据不会因为edit等原因丢失
+        columnCodeValues.forEach((code, valuePair) -> {
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            CommentFieldVO fieldVO = CommentFieldVO.buildInvisableFieldVO(code, valuePair);
+            commentFieldVOS.add(fieldVO);
+        });
+
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
         return reqBody;
@@ -122,12 +132,22 @@ public class MongoDbReviewCommentService {
                 ColumnDefineEntity::isEditableInConfirmPage);
         commentFieldVOS.forEach(editModel -> {
             // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
-            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            ValuePair valuePair = columnCodeValues.remove(editModel.getCode());
             if (valuePair == null) {
                 valuePair = new ValuePair();
             }
             editModel.setValuePair(valuePair);
         });
+
+        // columnCodeValues中剩余的不在column定义的支持范围的字段，以不可见字段方式，始终透传，保证原始提交数据不会因为edit等原因丢失
+        columnCodeValues.forEach((code, valuePair) -> {
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            CommentFieldVO fieldVO = CommentFieldVO.buildInvisableFieldVO(code, valuePair);
+            commentFieldVOS.add(fieldVO);
+        });
+
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
         return reqBody;
@@ -141,12 +161,22 @@ public class MongoDbReviewCommentService {
                 columnDefineEntity -> false);
         commentFieldVOS.forEach(editModel -> {
             // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
-            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            ValuePair valuePair = columnCodeValues.remove(editModel.getCode());
             if (valuePair == null) {
                 valuePair = new ValuePair();
             }
             editModel.setValuePair(valuePair);
         });
+
+        // columnCodeValues中剩余的不在column定义的支持范围的字段，以不可见字段方式，始终透传，保证原始提交数据不会因为edit等原因丢失
+        columnCodeValues.forEach((code, valuePair) -> {
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            CommentFieldVO fieldVO = CommentFieldVO.buildInvisableFieldVO(code, valuePair);
+            commentFieldVOS.add(fieldVO);
+        });
+
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
 
