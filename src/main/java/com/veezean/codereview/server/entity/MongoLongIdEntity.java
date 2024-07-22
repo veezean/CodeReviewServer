@@ -1,8 +1,8 @@
 package com.veezean.codereview.server.entity;
 
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 
-import javax.persistence.Id;
 import java.io.Serializable;
 
 /**

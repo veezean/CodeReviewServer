@@ -3,9 +3,9 @@ package com.veezean.codereview.server.entity;
 import com.veezean.codereview.server.common.SystemCommentFieldKey;
 import com.veezean.codereview.server.model.ValuePair;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Id;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;

@@ -2,10 +2,10 @@ package com.veezean.codereview.server.entity;
 
 import com.veezean.codereview.server.model.ValuePair;
 import lombok.Data;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Transient;
 import java.util.List;
 
 /**
