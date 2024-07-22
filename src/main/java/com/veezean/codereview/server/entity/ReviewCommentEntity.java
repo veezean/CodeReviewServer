@@ -1,6 +1,5 @@
-package com.veezean.codereview.server.monogo;
+package com.veezean.codereview.server.entity;
 
-import com.veezean.codereview.server.common.CommentOperateType;
 import com.veezean.codereview.server.common.SystemCommentFieldKey;
 import com.veezean.codereview.server.model.ValuePair;
 import lombok.Data;

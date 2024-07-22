@@ -1,6 +1,6 @@
 package com.veezean.codereview.server.model;
 
-import com.veezean.codereview.server.monogo.ReviewCommentEntity;
+import com.veezean.codereview.server.entity.ReviewCommentEntity;
 import lombok.Data;
 
 import java.util.List;

@@ -2,8 +2,10 @@ package com.veezean.codereview.server.entity;
 
 import com.veezean.codereview.server.model.ValuePair;
 import lombok.Data;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.*;
+import javax.persistence.Transient;
 import java.util.List;
 
 /**
@@ -12,17 +14,14 @@ import java.util.List;
  * @author Veezean
  * @since 2022/5/21
  */
-@Entity
-@Table(name = "t_comment_column", schema = "code_review", catalog = "")
 @Data
-public class ColumnDefineEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Document(collection = "t_comment_column")
+public class ColumnDefineEntity extends MongoLongIdEntity {
 
     /**
      * 字段唯一编码
      */
+    @Indexed(unique = true)
     private String columnCode;
     /**
      * 对外显示名称
@@ -95,11 +94,6 @@ public class ColumnDefineEntity {
 
     @Transient
     private List<ValuePair> enumValues;
-
-//    /**
-//     * 是否为确认界面的独有字段
-//     */
-//    private boolean confirmProp;
 
     /**
      * 是否必填

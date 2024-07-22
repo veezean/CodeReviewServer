@@ -9,8 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
+
 /**
- * <类功能简要描述>
+ * 登录管理接口
  *
  * @author Veezean
  * @since 2023/3/22
@@ -19,8 +21,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/server/login")
 @Slf4j
 public class LoginController {
-@Autowired
-private UserService userService;
+    @Resource
+    private UserService userService;
 
     @PostMapping("/doLogin")
     @ApiOperation("登录鉴权")

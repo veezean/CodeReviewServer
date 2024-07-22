@@ -1,4 +1,4 @@
-package com.veezean.codereview.server.monogo;
+package com.veezean.codereview.server.notice;
 
 import com.veezean.codereview.server.common.CommentOperateType;
 import com.veezean.codereview.server.model.ValuePair;

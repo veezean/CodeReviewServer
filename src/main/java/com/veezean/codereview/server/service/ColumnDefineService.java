@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * <类功能简要描述>
+ * 评审字段管理服务
  *
  * @author Veezean
  * @since 2023/3/24
@@ -40,7 +40,7 @@ public class ColumnDefineService {
         ColumnDefineEntity existColumn =
                 columnDefineRepository.findById(columnId).orElse(new ColumnDefineEntity());
         BeanUtil.copyProperties(reqBody, existColumn);
-        columnDefineRepository.saveAndFlush(existColumn);
+        columnDefineRepository.save(existColumn);
     }
 
     private void reqValidate(ColumnDefineEntity reqBody) {
@@ -77,20 +77,16 @@ public class ColumnDefineService {
 
     @Transactional
     public void deleteColumns(List<Long> columnIds) {
-        boolean containsSystemField = columnDefineRepository.findAllById(columnIds).stream()
-                .anyMatch(ColumnDefineEntity::isSystemInitialization);
-        if (containsSystemField) {
-            throw new CodeReviewException("包含系统预置字段，不允许删除");
+        for (ColumnDefineEntity next : columnDefineRepository.findAllById(columnIds)) {
+            if (next.isSystemInitialization()) {
+                throw new CodeReviewException("包含系统预置字段，不允许删除");
+            }
         }
         columnDefineRepository.deleteAllById(columnIds);
     }
 
     public ColumnDefineEntity queryColumn(long columnId) {
         return columnDefineRepository.findById(columnId).orElseThrow(() -> new CodeReviewException("数据不存在"));
-    }
-
-    public ColumnDefineEntity queryColumnByCode(String code) {
-        return columnDefineRepository.findFirstByColumnCode(code);
     }
 
     public Stream<ColumnDefineEntity> queryColumns() {

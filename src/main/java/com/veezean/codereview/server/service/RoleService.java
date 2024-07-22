@@ -5,11 +5,10 @@ import com.veezean.codereview.server.common.CommonConsts;
 import com.veezean.codereview.server.common.CurrentUserHolder;
 import com.veezean.codereview.server.entity.RoleEntity;
 import com.veezean.codereview.server.entity.UserEntity;
-import com.veezean.codereview.server.entity.UserRoleEntity;
 import com.veezean.codereview.server.model.SaveRoleReqBody;
+import com.veezean.codereview.server.monogo.MongoOperateHelper;
 import com.veezean.codereview.server.repository.RoleRepository;
 import com.veezean.codereview.server.repository.UserRepository;
-import com.veezean.codereview.server.repository.UserRoleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -17,12 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * <类功能简要描述>
+ * 系统角色信息管理服务
  *
  * @author Veezean
  * @since 2023/3/23
@@ -32,13 +32,15 @@ import java.util.stream.Collectors;
 public class RoleService {
     @Autowired
     private RoleRepository roleRepository;
-    @Autowired
-    private UserRoleRepository userRoleRepository;
-    @Autowired
-    private UserRepository userRepository;
+    @Resource
+    private MongoOperateHelper mongoOperateHelper;
 
     public List<RoleEntity> getRoles() {
         return roleRepository.findAll();
+    }
+
+    public List<RoleEntity> getRoleByIds(List<Long> roleIds) {
+        return roleRepository.findAllByIdIn(roleIds);
     }
 
     public RoleEntity getRoleById(Long roleId) {
@@ -74,7 +76,7 @@ public class RoleService {
             entity.setCanAccessPage(reqBody.getCanAccessPage());
         }
 
-        roleRepository.saveAndFlush(entity);
+        roleRepository.save(entity);
     }
 
     @Transactional
@@ -112,55 +114,32 @@ public class RoleService {
                     } else {
                         roleEntity.setCanAccessPage(reqBody.getCanAccessPage());
                     }
+
+                    roleRepository.save(roleEntity);
                 });
     }
 
     @Transactional
     public void deleteRole(long roleId) {
-        userRoleRepository.deleteAllByRoleId(roleId);
         roleRepository.deleteById(roleId);
+        deleteUserBindedRole(roleId);
     }
 
     @Transactional
     public void deleteRoles(List<Long> roleIds) {
         for (Long roleId : roleIds) {
-            userRoleRepository.deleteAllByRoleId(roleId);
             roleRepository.deleteById(roleId);
+            deleteUserBindedRole(roleId);
         }
     }
 
-    @Transactional
-    public void bindRole(String account, List<Long> roleIds) {
-        UserEntity userEntity = userRepository.findFirstByAccount(account);
-        if (userEntity == null) {
-            throw new CodeReviewException("用户不存在");
-        }
-
-        // 先清掉所有角色绑定信息
-        userRoleRepository.deleteAllByUser(userEntity);
-
-        // 再绑定新设定的角色列表
-        for (Long roleId : roleIds) {
-            RoleEntity roleEntity = roleRepository.findById(roleId).orElseThrow(() -> new CodeReviewException("角色不存在"));
-            UserRoleEntity existBindingEntity = userRoleRepository.findFirstByUserAndRole(userEntity, roleEntity);
-            if (existBindingEntity == null) {
-                UserRoleEntity userRoleEntity = new UserRoleEntity();
-                userRoleEntity.setUser(userEntity);
-                userRoleEntity.setRole(roleEntity);
-                userRoleRepository.saveAndFlush(userRoleEntity);
-            }
-        }
-
-    }
-
-    @Transactional
-    public void unbindRole(String account, long roleId) {
-        UserEntity userEntity = userRepository.findFirstByAccount(account);
-        RoleEntity roleEntity = roleRepository.findById(roleId).orElse(null);
-        if (userEntity == null || roleEntity == null) {
-            throw new CodeReviewException("用户或者角色不存在");
-        }
-        userRoleRepository.deleteAllByUserAndRole(userEntity, roleEntity);
+    /**
+     * 将指定角色从所有用户身上移除
+     *
+     * @param roleId
+     */
+    private void deleteUserBindedRole(long roleId) {
+        mongoOperateHelper.removeIfExistinArrayFields("roles", roleId, UserEntity.class);
     }
 
     public List<String> getUserCanAccessPages() {

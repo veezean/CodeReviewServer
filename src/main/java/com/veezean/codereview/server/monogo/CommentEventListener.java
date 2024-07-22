@@ -3,8 +3,11 @@ package com.veezean.codereview.server.monogo;
 import com.veezean.codereview.server.common.CommentOperateType;
 import com.veezean.codereview.server.common.CurrentUserHolder;
 import com.veezean.codereview.server.common.SystemCommentFieldKey;
+import com.veezean.codereview.server.entity.ReviewCommentEntity;
 import com.veezean.codereview.server.model.ValuePair;
+import com.veezean.codereview.server.notice.CommentNoticeEvent;
 import com.veezean.codereview.server.notice.NoticeCache;
+import com.veezean.codereview.server.repository.ReviewCommentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
@@ -22,7 +25,7 @@ import java.util.Optional;
  */
 @Component
 @Slf4j
-public class MongoEventListener extends AbstractMongoEventListener<ReviewCommentEntity> {
+public class CommentEventListener extends AbstractMongoEventListener<ReviewCommentEntity> {
     @Autowired
     private ReviewCommentRepository reviewCommentRepository;
 

@@ -1,13 +1,8 @@
 package com.veezean.codereview.server.notice;
 
-import cn.hutool.core.map.MapUtil;
-import com.sun.org.apache.regexp.internal.RE;
-import com.veezean.codereview.server.monogo.CommentNoticeEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.support.ScopeNotActiveException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

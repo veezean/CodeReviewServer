@@ -2,6 +2,7 @@ package com.veezean.codereview.server.repository;
 
 import com.veezean.codereview.server.entity.DepartmentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -11,5 +12,5 @@ import org.springframework.stereotype.Repository;
  * @since 2023/3/22
  */
 @Repository
-public interface DepartmentRepository extends JpaRepository<DepartmentEntity, Long> {
+public interface DepartmentRepository extends MongoRepository<DepartmentEntity, Long> {
 }

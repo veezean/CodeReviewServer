@@ -8,11 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * <类功能简要描述>
+ * 角色管理接口
  *
  * @author Veezean
  * @since 2023/3/23
@@ -60,17 +58,17 @@ public class RoleController {
         return Response.simpleSuccessResponse(roleEntity);
     }
 
-    @GetMapping("/bindRole")
-    public Response<String> bindRole(@RequestParam String account, @RequestParam long roleId) {
-        roleService.bindRole(account, Stream.of(roleId).collect(Collectors.toList()));
-        return Response.simpleSuccessResponse();
-    }
-
-    @GetMapping("/unbindRole")
-    public Response<String> unbindRole(@RequestParam String account, @RequestParam long roleId) {
-        roleService.unbindRole(account, roleId);
-        return Response.simpleSuccessResponse();
-    }
+//    @GetMapping("/bindRole")
+//    public Response<String> bindRole(@RequestParam String account, @RequestParam long roleId) {
+//        roleService.bindRole(account, Stream.of(roleId).collect(Collectors.toList()));
+//        return Response.simpleSuccessResponse();
+//    }
+//
+//    @GetMapping("/unbindRole")
+//    public Response<String> unbindRole(@RequestParam String account, @RequestParam long roleId) {
+//        roleService.unbindRole(account, roleId);
+//        return Response.simpleSuccessResponse();
+//    }
 
     @GetMapping("/getUserCanAccessPages")
     public Response<List<String>> getUserCanAccessPages() {

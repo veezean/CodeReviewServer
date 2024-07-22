@@ -1,6 +1,6 @@
-package com.veezean.codereview.server.monogo;
+package com.veezean.codereview.server.repository;
 
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import com.veezean.codereview.server.entity.ReviewCommentEntity;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

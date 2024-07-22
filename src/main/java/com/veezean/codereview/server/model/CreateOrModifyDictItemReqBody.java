@@ -1,9 +1,6 @@
 package com.veezean.codereview.server.model;
 
-import com.veezean.codereview.server.entity.DictCollectionEntity;
 import lombok.Data;
-
-import javax.persistence.ManyToOne;
 
 /**
  * <类功能简要描述>
@@ -12,7 +9,8 @@ import javax.persistence.ManyToOne;
  * @since 2023/3/24
  */
 @Data
-public class SaveDictItemReqBody {
+public class CreateOrModifyDictItemReqBody {
+    private Long id;
     private String value;
     private String showName;
     private String itemDesc;
