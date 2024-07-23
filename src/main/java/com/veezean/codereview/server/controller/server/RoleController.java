@@ -58,18 +58,6 @@ public class RoleController {
         return Response.simpleSuccessResponse(roleEntity);
     }
 
-//    @GetMapping("/bindRole")
-//    public Response<String> bindRole(@RequestParam String account, @RequestParam long roleId) {
-//        roleService.bindRole(account, Stream.of(roleId).collect(Collectors.toList()));
-//        return Response.simpleSuccessResponse();
-//    }
-//
-//    @GetMapping("/unbindRole")
-//    public Response<String> unbindRole(@RequestParam String account, @RequestParam long roleId) {
-//        roleService.unbindRole(account, roleId);
-//        return Response.simpleSuccessResponse();
-//    }
-
     @GetMapping("/getUserCanAccessPages")
     public Response<List<String>> getUserCanAccessPages() {
         List<String> userCanAccessPages = roleService.getUserCanAccessPages();

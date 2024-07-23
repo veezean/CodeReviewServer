@@ -5,7 +5,6 @@ import com.veezean.codereview.server.entity.DictItem;
 import com.veezean.codereview.server.model.CreateOrModifyDictItemReqBody;
 import com.veezean.codereview.server.model.Response;
 import com.veezean.codereview.server.model.SaveDictCollectionReqBody;
-import com.veezean.codereview.server.model.ModifyDictItemReqBody;
 import com.veezean.codereview.server.service.DictService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
