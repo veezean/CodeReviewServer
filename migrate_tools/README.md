@@ -1,5 +1,3 @@
-## MySQL存量数据迁移到MongoDB工具
+## 从低版本升级至v4.2.x版本升级-数据迁移工具使用说明
 
-启动之后：
-GET http://127.0.0.1:23561/migrate/execute
-
+[点此查看](https://mp.weixin.qq.com/s/V6jHikz_0mT_mCllJhitPQ)

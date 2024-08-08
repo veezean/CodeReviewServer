@@ -26,10 +26,12 @@ public class VersionMatchChecker {
         versionMatchDefines.put("4.1.1", VersionRange.of("4.0.3", ""));
         versionMatchDefines.put("4.1.2", VersionRange.of("4.0.3", ""));
         versionMatchDefines.put("4.1.3", VersionRange.of("4.0.3", ""));
+        versionMatchDefines.put("4.2.1", VersionRange.of("4.2.1", ""));
 
         versionDescUrls.put("4.1.1", "https://mp.weixin.qq.com/s/yTR0iTDNGcpzQqvbS7DkjQ");
         versionDescUrls.put("4.1.2", "https://mp.weixin.qq.com/s/yTR0iTDNGcpzQqvbS7DkjQ");
         versionDescUrls.put("4.1.3", "https://mp.weixin.qq.com/s/yTR0iTDNGcpzQqvbS7DkjQ");
+        versionDescUrls.put("4.2.1", "https://mp.weixin.qq.com/s/w-hL-pEbB8FbiAAvHCvDQg");
     }
 
     @Value("${application.server.version:}")
