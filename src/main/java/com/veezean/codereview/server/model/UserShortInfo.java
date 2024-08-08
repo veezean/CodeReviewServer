@@ -18,11 +18,11 @@ public class UserShortInfo {
     private String userName;
     private String department;
 
-    public static UserShortInfo from(UserEntity userEntity) {
+    public static UserShortInfo from(UserEntity userEntity, DepartmentEntity departmentEntity) {
         UserShortInfo userShortInfo = new UserShortInfo();
         userShortInfo.setAccount(userEntity.getAccount());
         userShortInfo.setUserName(userEntity.getName());
-        Optional.ofNullable(userEntity.getDepartment())
+        Optional.ofNullable(departmentEntity)
                 .map(DepartmentEntity::getName)
                 .ifPresent(userShortInfo::setDepartment);
         return userShortInfo;

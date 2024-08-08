@@ -68,11 +68,4 @@ public class ServerProjectCollector {
         List<String> userShortInfos = projectService.queryProjectMembers(projectId);
         return Response.simpleSuccessResponse(userShortInfos);
     }
-
-//    @GetMapping("/removeUserFromProject")
-//    public Response<String> removeUserFromProject(String account, long projectId) {
-//        projectService.removeUserFromProject(account, projectId);
-//        return Response.simpleSuccessResponse();
-//    }
-
 }

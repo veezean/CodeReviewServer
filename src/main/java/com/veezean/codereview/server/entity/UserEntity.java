@@ -1,10 +1,10 @@
 package com.veezean.codereview.server.entity;
 
 import lombok.Data;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import java.util.List;
 
 /**
  * <类功能简要描述>
@@ -12,14 +12,16 @@ import javax.persistence.Table;
  * @author Veezean
  * @since 2023/3/22
  */
-@Entity
-@Table(name = "t_user", schema = "code_review", catalog = "")
 @Data
-public class UserEntity extends BaseEntity{
+@Document(collection = "t_user")
+public class UserEntity extends MongoLongIdEntity {
+    @Indexed(unique = true)
     private String account;
     private String name;
-    @ManyToOne
-    private DepartmentEntity department;
+    @Indexed
+    private long departmentId;
     private String password;
     private String phoneNumber;
+    @Indexed
+    private List<Long> roles;
 }

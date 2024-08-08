@@ -1,7 +1,10 @@
 package com.veezean.codereview.server.model;
 
+import com.veezean.codereview.server.common.InputTypeDefine;
 import lombok.Data;
+import lombok.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,4 +23,22 @@ public class CommentFieldVO {
     private boolean required;
     private boolean editable;
     private boolean show;
+
+    /**
+     * 构建一个界面不可见字段，用于数据透传
+     *
+     * @return
+     */
+    public static CommentFieldVO buildInvisableFieldVO(String code, ValuePair valuePair) {
+        CommentFieldVO editModel = new CommentFieldVO();
+        editModel.setCode(code);
+        editModel.setEditable(false);
+        editModel.setShow(false);
+        editModel.setRequired(false);
+        editModel.setInputType(InputTypeDefine.TEXT.getValue());
+        editModel.setEnumValues(null);
+        editModel.setShowName("");
+        editModel.setValuePair(valuePair);
+        return editModel;
+    }
 }

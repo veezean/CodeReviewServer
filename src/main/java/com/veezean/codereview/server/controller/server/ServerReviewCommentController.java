@@ -1,12 +1,10 @@
 package com.veezean.codereview.server.controller.server;
 
 import com.veezean.codereview.server.model.*;
-import com.veezean.codereview.server.monogo.ReviewCommentEntity;
+import com.veezean.codereview.server.entity.ReviewCommentEntity;
 import com.veezean.codereview.server.service.MongoDbReviewCommentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -82,7 +80,7 @@ public class ServerReviewCommentController {
 
     @GetMapping("/queryComment")
     public Response<ReviewCommentEntity> queryComment(@RequestParam String identifier) {
-        com.veezean.codereview.server.monogo.ReviewCommentEntity reviewCommentEntity = mongoDbReviewCommentService.queryCommentDetail(identifier);
+        ReviewCommentEntity reviewCommentEntity = mongoDbReviewCommentService.queryCommentDetail(identifier);
         return Response.simpleSuccessResponse(reviewCommentEntity);
     }
 

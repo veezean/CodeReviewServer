@@ -3,12 +3,14 @@ package com.veezean.codereview.server.service;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.digest.MD5;
 import com.veezean.codereview.server.common.*;
-import com.veezean.codereview.server.entity.*;
+import com.veezean.codereview.server.entity.DepartmentEntity;
+import com.veezean.codereview.server.entity.RoleEntity;
+import com.veezean.codereview.server.entity.UserEntity;
+import com.veezean.codereview.server.entity.UserLoginTokenEntity;
 import com.veezean.codereview.server.model.*;
-import com.veezean.codereview.server.repository.DepartmentRepository;
+import com.veezean.codereview.server.monogo.MongoOperateHelper;
 import com.veezean.codereview.server.repository.UserLoginTokenRepository;
 import com.veezean.codereview.server.repository.UserRepository;
-import com.veezean.codereview.server.repository.UserRoleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -17,15 +19,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -37,29 +42,27 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserService {
-    private static UserService userService;
 
     @Value("${application.config.tokenExpireDays:2}")
     private int tokenExpireDays;
 
     @Autowired
     private UserLoginTokenRepository userLoginTokenRepository;
-    @Autowired
-    private UserRoleRepository userRoleRepository;
+    //    @Autowired
+//    private UserRoleRepository userRoleRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private DepartmentRepository departmentRepository;
+    //    @Autowired
+//    private DepartmentRepository departmentRepository;
+    @Resource
+    private DepartmentService departmentService;
 
     @Autowired
     private RoleService roleService;
     @Resource
     private VersionMatchChecker versionMatchChecker;
-
-    @PostConstruct
-    public void init() {
-        userService = this;
-    }
+    @Resource
+    private MongoOperateHelper mongoOperateHelper;
 
     @Transactional
     public void createUser(SaveUserReqBody reqBody) {
@@ -77,10 +80,7 @@ public class UserService {
             throw new CodeReviewException("账号已存在");
         }
 
-        DepartmentEntity departmentEntity = departmentRepository.findById(reqBody.getDepartmentId()).orElse(null);
-        if (departmentEntity == null) {
-            throw new CodeReviewException("部门不存在");
-        }
+        DepartmentEntity departmentEntity = departmentService.getByDeptId(reqBody.getDepartmentId());
 
         UserEntity userEntity = new UserEntity();
         userEntity.setAccount(reqBody.getAccount());
@@ -88,9 +88,10 @@ public class UserService {
         userEntity.setPhoneNumber(reqBody.getPhoneNumber());
         // 创建用户默认密码，首次使用时修改
         userEntity.setPassword(MD5.create().digestHex("123456", StandardCharsets.UTF_8));
-        userEntity.setDepartment(departmentEntity);
-        userRepository.saveAndFlush(userEntity);
-        roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
+        userEntity.setDepartmentId(departmentEntity.getId());
+        userEntity.setRoles(reqBody.getRoles());
+        userRepository.save(userEntity);
+//        roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
     }
 
     @Transactional
@@ -108,15 +109,13 @@ public class UserService {
         if (existUser == null) {
             throw new CodeReviewException("用户不存在");
         }
-        DepartmentEntity departmentEntity = departmentRepository.findById(reqBody.getDepartmentId()).orElse(null);
-        if (departmentEntity == null) {
-            throw new CodeReviewException("部门不存在");
-        }
+        DepartmentEntity departmentEntity = departmentService.getByDeptId(reqBody.getDepartmentId());
         existUser.setName(reqBody.getName());
         existUser.setPhoneNumber(reqBody.getPhoneNumber());
-        existUser.setDepartment(departmentEntity);
-        userRepository.saveAndFlush(existUser);
-        roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
+        existUser.setDepartmentId(departmentEntity.getId());
+        existUser.setRoles(reqBody.getRoles());
+        userRepository.save(existUser);
+//        roleService.bindRole(reqBody.getAccount(), reqBody.getRoles());
     }
 
 
@@ -133,7 +132,7 @@ public class UserService {
         }
         existUser.setName(reqBody.getName());
         existUser.setPhoneNumber(reqBody.getPhoneNumber());
-        userRepository.saveAndFlush(existUser);
+        userRepository.save(existUser);
     }
 
     public void modifyPassword(ChangePwdReqBody reqBody) {
@@ -151,69 +150,84 @@ public class UserService {
             throw new CodeReviewException("修改失败，原密码不正确");
         }
         existUser.setPassword(reqBody.getNewPwd());
-        userRepository.saveAndFlush(existUser);
+        userRepository.save(existUser);
     }
 
     @Transactional
     public void deleteUser(String account) {
-        Optional.ofNullable(userRepository.findFirstByAccount(account))
-                .ifPresent(userEntity -> {
-                    userRoleRepository.deleteAllByUser(userEntity);
-                    userRepository.delete(userEntity);
-                });
+        userRepository.deleteAllByAccount(account);
     }
 
     @Transactional
     public void deleteUsers(List<String> accounts) {
-        for (String account : accounts) {
-            Optional.ofNullable(userRepository.findFirstByAccount(account))
-                    .ifPresent(userEntity -> {
-                        userRoleRepository.deleteAllByUser(userEntity);
-                        userRepository.delete(userEntity);
-                    });
-        }
+        userRepository.deleteAllByAccountIn(accounts);
     }
 
     public UserDetail getUserDetail(String account) {
         UserEntity userEntity = userRepository.findFirstByAccount(account);
-        return convertUserEntityToUserDetail(userEntity, false);
+        return convertUserEntityToUserDetail(userEntity, false, deptId -> departmentService.getByDeptId(deptId));
     }
 
     public PageBeanList<UserDetail> getUserDetails(PageQueryRequest<UserQueryBody> request) {
-        Pageable pageable = PageUtil.buildPageable(request);
-        UserQueryBody queryParams = request.getQueryParams();
+//        Pageable pageable = PageUtil.buildPageable(request);
 
-        UserEntity sampleEntity = new UserEntity();
+        Criteria criteria = Criteria.where("id").gte(0L);
+        UserQueryBody queryParams = request.getQueryParams();
         if (queryParams != null) {
             if (StringUtils.isNotEmpty(queryParams.getName())) {
-                sampleEntity.setName(queryParams.getName());
+                criteria = criteria.and("name").is(queryParams.getName());
             }
             if (StringUtils.isNotEmpty(queryParams.getPhoneNumber())) {
-                sampleEntity.setPhoneNumber(queryParams.getPhoneNumber());
+                criteria = criteria.and("phoneNumber").is(queryParams.getPhoneNumber());
             }
             if (StringUtils.isNotEmpty(queryParams.getAccount())) {
-                sampleEntity.setAccount(queryParams.getAccount());
+                criteria = criteria.and("account").is(queryParams.getPhoneNumber());
             }
             if (queryParams.getDeptId() != null) {
-                departmentRepository.findById(queryParams.getDeptId()).ifPresent(sampleEntity::setDepartment);
+                criteria = criteria.and("departmentId").is(queryParams.getDeptId());
             }
         }
-        Page<UserDetail> userDetails =
-                userRepository.findAll(Example.of(sampleEntity), pageable)
-                        .map(userEntity -> convertUserEntityToUserDetail(userEntity, false));
-        return PageBeanList.create(userDetails, pageable);
+
+        Map<Long, DepartmentEntity> allDepts = departmentService.queryAllDepts();
+        return mongoOperateHelper.pageQuery(
+                new Query(criteria),
+                UserEntity.class,
+                request.getPageIndex(),
+                request.getPageSize(),
+                entity -> convertUserEntityToUserDetail(entity, false, allDepts::get));
+
+//        UserEntity sampleEntity = new UserEntity();
+//        if (queryParams != null) {
+//            if (StringUtils.isNotEmpty(queryParams.getName())) {
+//                sampleEntity.setName(queryParams.getName());
+//            }
+//            if (StringUtils.isNotEmpty(queryParams.getPhoneNumber())) {
+//                sampleEntity.setPhoneNumber(queryParams.getPhoneNumber());
+//            }
+//            if (StringUtils.isNotEmpty(queryParams.getAccount())) {
+//                sampleEntity.setAccount(queryParams.getAccount());
+//            }
+//            if (queryParams.getDeptId() != null) {
+//                sampleEntity.setDepartmentId(queryParams.getDeptId());
+//            }
+//        }
+//        Page<UserDetail> userDetails =
+//                userRepository.findAll(Example.of(sampleEntity), pageable)
+//                        .map(userEntity -> convertUserEntityToUserDetail(userEntity, false));
+//        return PageBeanList.create(userDetails, pageable);
     }
 
 
     public List<UserDetail> getAllUserDetails() {
+        Map<Long, DepartmentEntity> allDepts = departmentService.queryAllDepts();
         return userRepository.findAll().stream()
-                .map(userEntity -> convertUserEntityToUserDetail(userEntity, true))
+                .map(userEntity -> convertUserEntityToUserDetail(userEntity, true, allDepts::get))
                 .collect(Collectors.toList());
     }
 
-    public static UserDetail getUserDetailByAccout(String account) {
-        return userService.getUserDetail(account);
-    }
+//    public static UserDetail getUserDetailByAccout(String account) {
+//        return userService.getUserDetail(account);
+//    }
 
     public UserPwdCheckRespBody authUserPwd(UserPwdCheckReq reqBody) {
         UserEntity entity = Optional.ofNullable(reqBody)
@@ -252,11 +266,12 @@ public class UserService {
                         });
         // 设定过期时间，如果已存在，则续期
         tokenEntity.setExpireAt(calculateTokenExpireAt());
-        userLoginTokenRepository.saveAndFlush(tokenEntity);
+        userLoginTokenRepository.save(tokenEntity);
 
         // 生层登录成功响应数据
         LoginSuccRespBody respBody = new LoginSuccRespBody();
-        respBody.setUserDetail(convertUserEntityToUserDetail(userEntity, false));
+        respBody.setUserDetail(convertUserEntityToUserDetail(userEntity, false,
+                deptId -> departmentService.getByDeptId(deptId)));
         respBody.setToken(tokenEntity.getToken());
         respBody.setExpireAt(tokenEntity.getExpireAt());
         respBody.setVersion(versionMatchChecker.currentVersion());
@@ -276,9 +291,7 @@ public class UserService {
         Optional.ofNullable(CurrentUserHolder.getCurrentUser())
                 .map(UserDetail::getAccount)
                 .map(account -> userRepository.findFirstByAccount(account))
-                .ifPresent(user -> {
-                    userLoginTokenRepository.deleteAllByUserId(user.getId());
-                });
+                .ifPresent(user -> userLoginTokenRepository.deleteAllByUserId(user.getId()));
     }
 
     /**
@@ -294,22 +307,25 @@ public class UserService {
                 .filter(userLoginTokenEntity -> userLoginTokenEntity.getExpireAt() > System.currentTimeMillis())
                 .map(UserLoginTokenEntity::getUserId)
                 .map(userId -> userRepository.findById(userId))
+                .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(userEntity -> convertUserEntityToUserDetail(userEntity, false))
+                .map(userEntity -> convertUserEntityToUserDetail(
+                        userEntity,
+                        false,
+                        deptId -> departmentService.getByDeptId(deptId)
+                ))
                 .orElseThrow(() -> new CodeReviewException("token不合法"));
     }
 
-    private UserDetail convertUserEntityToUserDetail(UserEntity user, boolean onlyAccountName) {
+    private UserDetail convertUserEntityToUserDetail(UserEntity user, boolean onlyAccountName, Function<Long,
+            DepartmentEntity> convertDeptFunc) {
         UserDetail userDetail = new UserDetail();
         userDetail.setAccount(user.getAccount());
         userDetail.setName(user.getName());
         if (!onlyAccountName) {
             userDetail.setPhoneNumber(user.getPhoneNumber());
-            userDetail.setDepartment(user.getDepartment());
-            List<RoleEntity> roleEntities = userRoleRepository.findAllByUser(user)
-                    .stream()
-                    .map(UserRoleEntity::getRole)
-                    .collect(Collectors.toList());
+            userDetail.setDepartment(convertDeptFunc.apply(user.getDepartmentId()));
+            List<RoleEntity> roleEntities = roleService.getRoleByIds(user.getRoles());
             userDetail.setRoles(roleEntities);
         }
         return userDetail;
@@ -357,10 +373,12 @@ public class UserService {
             throw new CodeReviewException("客户端查询用户类型不合法:" + queryType);
         }
 
+        Map<Long, DepartmentEntity> depts = departmentService.queryAllDepts();
+
         return Optional.ofNullable(userEntities)
                 .orElse(new ArrayList<>())
                 .stream()
-                .map(UserShortInfo::from)
+                .map(entity -> UserShortInfo.from(entity, depts.get(entity.getDepartmentId())))
                 .collect(Collectors.toList());
     }
 }

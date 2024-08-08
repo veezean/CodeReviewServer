@@ -3,7 +3,6 @@ package com.veezean.codereview.server.controller;
 import com.veezean.codereview.server.entity.ColumnDefineEntity;
 import com.veezean.codereview.server.model.*;
 import com.veezean.codereview.server.service.ColumnDefineService;
-import com.veezean.codereview.server.service.SystemService;
 import com.veezean.codereview.server.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,9 +25,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Api("系统配置管理")
 public class SystemController {
-
-    @Autowired
-    private SystemService systemService;
 
     @Autowired
     private ColumnDefineService columnDefineService;
@@ -58,20 +54,6 @@ public class SystemController {
         RecordColumns definedRecordColumns = new RecordColumns();
         definedRecordColumns.setColumns(defineEntities);
         return Response.simpleSuccessResponse(definedRecordColumns);
-    }
-
-    @PostMapping("/initColumnDefines")
-    @ApiOperation("初始化服务端的字段定义（覆盖）")
-    public Response<String> initColumnDefines(@RequestBody RecordColumns reqBody) {
-        systemService.initColumnDefines(reqBody);
-        return Response.simpleSuccessResponse();
-    }
-
-    @GetMapping("/getSystemNotice")
-    @ApiOperation("拉取当前系统的通知信息")
-    public Response<List<NoticeBody>> getSystemNotice() {
-        List<NoticeBody> noticeBodies = new ArrayList<>();
-        return Response.simpleSuccessResponse(noticeBodies);
     }
 
     @PostMapping("/mockNotice")

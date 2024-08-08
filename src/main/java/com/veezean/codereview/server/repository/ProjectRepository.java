@@ -1,7 +1,7 @@
 package com.veezean.codereview.server.repository;
 
 import com.veezean.codereview.server.entity.ProjectEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  * @since 2021/4/26
  */
 @Repository
-public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
+public interface ProjectRepository extends MongoRepository<ProjectEntity, Long> {
     List<ProjectEntity> findAllByDepartmentId(long deptId);
     List<ProjectEntity> findAllByDepartmentIdIn(List<Long> deptIds);
     List<ProjectEntity> findAllByIdIn(List<Long> projectIds);

@@ -1,10 +1,11 @@
 package com.veezean.codereview.server.entity;
 
 import lombok.Data;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import java.util.List;
 
 /**
  * 项目信息
@@ -12,15 +13,20 @@ import javax.persistence.Table;
  * @author Veezean
  * @since 2021/4/26
  */
-@Entity
-@Table(name = "t_project", schema = "code_review", catalog = "")
 @Data
-public class ProjectEntity extends BaseEntity{
+@Document(collection = "t_project")
+public class ProjectEntity extends MongoLongIdEntity {
     private String projectName;
-
-    @ManyToOne
-    private DepartmentEntity department;
-
+    @Indexed
+    private long departmentId;
     private String projectDesc;
+    @Indexed
+    private List<String> memberAccounts;
+
+    /**
+     * 详细部门信息
+     */
+    @Transient
+    private DepartmentEntity department;
 
 }

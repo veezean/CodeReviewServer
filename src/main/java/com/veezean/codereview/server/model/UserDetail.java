@@ -4,7 +4,6 @@ import com.veezean.codereview.server.entity.DepartmentEntity;
 import com.veezean.codereview.server.entity.RoleEntity;
 import lombok.Data;
 
-import javax.persistence.ManyToOne;
 import java.util.List;
 
 /**

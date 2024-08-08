@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * <类功能简要描述>
+ * 评审字段管理接口类
  *
  * @author Veezean
  * @since 2023/3/24

@@ -3,20 +3,21 @@ package com.veezean.codereview.server.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.veezean.codereview.server.common.*;
-import com.veezean.codereview.server.entity.BaseEntity;
 import com.veezean.codereview.server.entity.ColumnDefineEntity;
+import com.veezean.codereview.server.entity.ProjectEntity;
+import com.veezean.codereview.server.entity.ReviewCommentEntity;
 import com.veezean.codereview.server.model.*;
-import com.veezean.codereview.server.monogo.ReviewCommentEntity;
-import com.veezean.codereview.server.monogo.ReviewCommentRepository;
+import com.veezean.codereview.server.repository.ReviewCommentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -57,8 +58,6 @@ public class MongoDbReviewCommentService {
 
     @Autowired
     private ProjectService projectService;
-    @Autowired
-    private CommentFieldShowContentProducer commentFieldShowContentProducer;
 
     private List<CommentFieldVO> buildCommentFieldVO(java.util.function.Predicate<ColumnDefineEntity> showPredicate,
                                                      java.util.function.Predicate<ColumnDefineEntity> editPredicate) {
@@ -102,12 +101,22 @@ public class MongoDbReviewCommentService {
                 ColumnDefineEntity::isEditableInEditPage);
         commentFieldVOS.forEach(editModel -> {
             // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
-            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            ValuePair valuePair = columnCodeValues.remove(editModel.getCode());
             if (valuePair == null) {
                 valuePair = new ValuePair();
             }
             editModel.setValuePair(valuePair);
         });
+
+        // columnCodeValues中剩余的不在column定义的支持范围的字段，以不可见字段方式，始终透传，保证原始提交数据不会因为edit等原因丢失
+        columnCodeValues.forEach((code, valuePair) -> {
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            CommentFieldVO fieldVO = CommentFieldVO.buildInvisableFieldVO(code, valuePair);
+            commentFieldVOS.add(fieldVO);
+        });
+
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
         return reqBody;
@@ -122,12 +131,22 @@ public class MongoDbReviewCommentService {
                 ColumnDefineEntity::isEditableInConfirmPage);
         commentFieldVOS.forEach(editModel -> {
             // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
-            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            ValuePair valuePair = columnCodeValues.remove(editModel.getCode());
             if (valuePair == null) {
                 valuePair = new ValuePair();
             }
             editModel.setValuePair(valuePair);
         });
+
+        // columnCodeValues中剩余的不在column定义的支持范围的字段，以不可见字段方式，始终透传，保证原始提交数据不会因为edit等原因丢失
+        columnCodeValues.forEach((code, valuePair) -> {
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            CommentFieldVO fieldVO = CommentFieldVO.buildInvisableFieldVO(code, valuePair);
+            commentFieldVOS.add(fieldVO);
+        });
+
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
         return reqBody;
@@ -141,12 +160,22 @@ public class MongoDbReviewCommentService {
                 columnDefineEntity -> false);
         commentFieldVOS.forEach(editModel -> {
             // 赋值， 防止客户端提交数据字段缺失（或者版本差异导致的缺失），此处增加保护
-            ValuePair valuePair = columnCodeValues.get(editModel.getCode());
+            ValuePair valuePair = columnCodeValues.remove(editModel.getCode());
             if (valuePair == null) {
                 valuePair = new ValuePair();
             }
             editModel.setValuePair(valuePair);
         });
+
+        // columnCodeValues中剩余的不在column定义的支持范围的字段，以不可见字段方式，始终透传，保证原始提交数据不会因为edit等原因丢失
+        columnCodeValues.forEach((code, valuePair) -> {
+            if (valuePair == null) {
+                valuePair = new ValuePair();
+            }
+            CommentFieldVO fieldVO = CommentFieldVO.buildInvisableFieldVO(code, valuePair);
+            commentFieldVOS.add(fieldVO);
+        });
+
         reqBody.setFieldModelList(commentFieldVOS);
         reqBody.setDataVersion(commentEntity.getDataVersion());
 
@@ -328,7 +357,7 @@ public class MongoDbReviewCommentService {
                             Map<String, String> result = new HashMap<>();
                             entity.getValues().forEach((key, value) -> {
                                 result.put(key,
-                                        commentFieldShowContentProducer.getColumnShowContent(value)
+                                        CommentFieldShowContentHelper.getColumnShowContent(value)
                                 );
                             });
                             return result;
@@ -360,7 +389,7 @@ public class MongoDbReviewCommentService {
                                 // 对当条记录的各个字段进行排序
                                 entity.getValues().forEach((s, valuePair) -> {
                                     columnValueMap.put(s,
-                                            commentFieldShowContentProducer.getColumnShowContent(valuePair));
+                                            CommentFieldShowContentHelper.getColumnShowContent(valuePair));
                                 });
 
                                 // 按照指定顺序生成各个字段的值
@@ -438,9 +467,10 @@ public class MongoDbReviewCommentService {
 
             if (queryParams.getDepartmentId() != null && queryParams.getDepartmentId() > 0L) {
                 // 如果指定了部门，则限定在部门内的项目中查询
-                List<String> deptProjIds = projectService.queryAccessableProjectInDept(queryParams.getDepartmentId() + "")
+                List<String> deptProjIds =
+                        projectService.queryAccessableProjectInDept(queryParams.getDepartmentId() + "")
                         .stream()
-                        .map(BaseEntity::getId)
+                        .map(ProjectEntity::getId)
                         .map(String::valueOf)
                         .filter(bindedProjectIds::contains)
                         .collect(Collectors.toList());

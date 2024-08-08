@@ -8,10 +8,11 @@ import com.veezean.codereview.server.service.DepartmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * <类功能简要描述>
+ * 部门管理接口
  *
  * @author Veezean
  * @since 2023/3/23
@@ -20,7 +21,7 @@ import java.util.List;
 @RequestMapping("/server/dept")
 public class DeptController {
 
-    @Autowired
+    @Resource
     private DepartmentService departmentService;
 
     @GetMapping("/getDeptTree")

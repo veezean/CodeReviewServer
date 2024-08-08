@@ -1,8 +1,7 @@
 package com.veezean.codereview.server.repository;
 
-import com.veezean.codereview.server.entity.UserEntity;
 import com.veezean.codereview.server.entity.UserLoginTokenEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Repository;
  * @since 2023/3/22
  */
 @Repository
-public interface UserLoginTokenRepository extends JpaRepository<UserLoginTokenEntity, Long> {
+public interface UserLoginTokenRepository extends MongoRepository<UserLoginTokenEntity, Long> {
     UserLoginTokenEntity queryFirstByToken(String token);
     UserLoginTokenEntity queryFirstByUserId(long userId);
     void deleteAllByUserId(long userId);

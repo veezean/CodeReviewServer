@@ -1,10 +1,8 @@
 package com.veezean.codereview.server.entity;
 
 import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.Field;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * <类功能简要描述>
@@ -13,9 +11,9 @@ import javax.persistence.Table;
  * @since 2023/3/22
  */
 @Data
-@Entity
-@Table(name = "t_role", schema = "code_review", catalog = "")
-public class RoleEntity extends BaseEntity{
+@Document(collection = "t_role")
+public class RoleEntity extends MongoLongIdEntity {
+    @Indexed(unique = true)
     private String roleCode;
     private String roleName;
     private String roleDesc;
