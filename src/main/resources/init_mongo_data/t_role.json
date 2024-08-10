@@ -1,0 +1,16 @@
+[
+  {
+    "id": 8,
+    "canAccessPage": "reviewcomments,mytodo,mycommitted,myconfirmed,all,servMgt,commentFields,enums,systemConfig,users,roles,depts,projs,reports,dashboard",
+    "roleCode": "admin",
+    "roleDesc": "系统管理员角色，拥有系统所有权限。",
+    "roleName": "系统管理员"
+  },
+  {
+    "id": 9,
+    "canAccessPage": "reviewcomments,mytodo,mycommitted,myconfirmed",
+    "roleCode": "normal",
+    "roleDesc": "普通用户，有权限进行与自己有关的评审数据的处理，比如我的待办、我提交的、我确认的",
+    "roleName": "普通用户"
+  }
+]

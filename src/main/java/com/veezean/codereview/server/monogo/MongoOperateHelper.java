@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Collection;
@@ -26,6 +27,7 @@ public class MongoOperateHelper {
     @Resource
     private MongoTemplate mongoTemplate;
 
+    @Transactional
     public <T> void batchUpdate(Query query, Update update, Class<T> entityClazz) {
         mongoTemplate.updateMulti(query, update, entityClazz);
     }
@@ -38,6 +40,7 @@ public class MongoOperateHelper {
      * @param entityClazz
      * @param <T>
      */
+    @Transactional
     public <T> void removeIfExistinArrayFields(String fieldName, Object value, Class<T> entityClazz) {
         Query query = new Query(Criteria.where(fieldName).in(value));
         Update update = new Update();
@@ -53,6 +56,7 @@ public class MongoOperateHelper {
      * @param entityClazz
      * @param <T>
      */
+    @Transactional
     public <T> void insertIntoArrayFields(Query query, String arrayFieldName, Object arrayItem, Class<T> entityClazz) {
         Update update = new Update();
         update.push(arrayFieldName, arrayItem);
@@ -101,5 +105,9 @@ public class MongoOperateHelper {
                 .map(resultMapFunc)
                 .collect(Collectors.toList());
         return PageBeanList.create(totalCount, pageSize, totalPage, currentPage, results);
+    }
+
+    public MongoTemplate getMongoTemplate() {
+        return this.mongoTemplate;
     }
 }
