@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "account": "test",
+    "departmentId": 15,
+    "name": "测试用户",
+    "password": "e10adc3949ba59abbe56e057f20f883e",
+    "phoneNumber": "3333377",
+    "roles": [
+      8,
+      9
+    ]
+  },
+  {
+    "id": 17,
+    "account": "codereview",
+    "departmentId": 11,
+    "name": "管理员",
+    "password": "e10adc3949ba59abbe56e057f20f883e",
+    "phoneNumber": "",
+    "roles": [
+      8
+    ]
+  }
+]

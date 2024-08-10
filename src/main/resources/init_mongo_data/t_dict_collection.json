@@ -1,0 +1,79 @@
+[
+  {
+    "id": 18,
+    "code": "CommentType",
+    "dictDesc": "",
+    "items": [
+      {
+        "id": 12,
+        "value": "1",
+        "showName": "问题",
+        "sort": 0
+      },
+      {
+        "id": 13,
+        "value": "2",
+        "showName": "建议",
+        "sort": 10
+      },
+      {
+        "id": 14,
+        "value": "3",
+        "showName": "疑问",
+        "sort": 20
+      }
+    ],
+    "name": "意见类型",
+    "type": 0
+  },
+  {
+    "id": 19,
+    "code": "ConfirmResult",
+    "dictDesc": "",
+    "items": [
+      {
+        "id": 15,
+        "value": "unconfirmed",
+        "showName": "未确认",
+        "itemDesc": "注意这个unconfirmed值要固定，不要修改",
+        "sort": 0
+      },
+      {
+        "id": 16,
+        "value": "2",
+        "showName": "已修改",
+        "sort": 10
+      },
+      {
+        "id": 17,
+        "value": "3",
+        "showName": "待修改",
+        "sort": 20
+      },
+      {
+        "id": 18,
+        "value": "4",
+        "showName": "拒绝",
+        "sort": 30
+      }
+    ],
+    "name": "确认结果",
+    "type": 0
+  },
+  {
+    "id": 21,
+    "code": "ProjectList",
+    "dictDesc": "系统预置动态列表，会拉取系统内所有项目名称与ID，作为下拉框选项",
+    "items": [],
+    "name": "项目列表",
+    "type": 1
+  },
+  {
+    "id": 22,
+    "code": "UserList",
+    "dictDesc": "系统预置动态列表，会拉取系统内所有用户姓名与账号，作为下拉框选项",
+    "items": [],
+    "name": "用户列表",
+    "type": 1
+  }
+]

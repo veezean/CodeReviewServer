@@ -45,19 +45,17 @@ V4.2.1版本正式发布，更新内容： [点击查看](https://mp.weixin.qq.c
 您可以从本仓库的`release version`中下载最新版本的二进制包，然后直接部署即可使用：
 
 1. 准备好MongoDB
-2. 执行`initial_db.sql`对MySQL进行初始化操作
-3. 修改`config/application-PROD.properties`文件中的配置，填写正确的数据库连接信息
-4. 根据部署系统的不同，执行`start.bat`或者`start.sh`，启动服务
-5. 访问`http://localhost:23560`可以查看到登录界面，使用预置账号`codereview/123456`可以登录进入系统。
+2. 修改`config/application-PROD.properties`文件中的配置，填写正确的数据库连接信息
+3. 根据部署系统的不同，执行`start.bat`或者`start.sh`，启动服务
+4. 访问`http://localhost:23560`可以查看到登录界面，使用预置账号`codereview/123456`可以登录进入系统。
 
 
 如果您是直接clone本代码仓库到本地，您可以按照如下方式即可轻松部署运行：
 
 1. 准备好MongoDB
-2. 执行`initial_db.sql`对MySQL进行初始化操作
-3. 修改`application-PROD.properties`文件中的配置，填写正确的数据库连接信息
-4. 启动服务
-5. 访问`http://localhost:23560`可以查看到登录界面，使用预置账号`codereview/123456`可以登录进入系统。
+2. 修改`application-PROD.properties`文件中的配置，填写正确的数据库连接信息
+3. 启动服务
+4. 访问`http://localhost:23560`可以查看到登录界面，使用预置账号`codereview/123456`可以登录进入系统。
 
 
 ## 服务端使用教程
