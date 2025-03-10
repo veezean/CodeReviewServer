@@ -56,6 +56,33 @@ V4.2.1版本正式发布，更新内容： [点击查看](https://mp.weixin.qq.c
 3. 启动服务
 4. 访问`http://localhost:23560`可以查看到登录界面，使用预置账号`codereview/123456`可以登录进入系统。
 
+#### Docker 部署
+DockerRun:
+```
+docker run -dit -p 23560:23560 --name code-review-server -e MONGODB_HOST="127.0.0.1" -e MONGODB_PORT="27017" -e MONGODB_USERNAME="root" -e MONGODB_PASSWORD="123456" -e MONGODB_DATABASE="code-review" -e WEBHOOK_URL="http://127.0.0.1:23560/client/system/mockNotice" jiangjuhong/code-review-server:latest
+```
+DockerCompose:
+```
+version: '3'
+services:
+  code-review-server:
+    image: jiangjuhong/code-review-server:latest
+    container_name: code-review-server
+    restart: always
+    ports:
+      - 23560:23560
+    environment:
+      MONGODB_HOST: "IP_ADDRESS"
+      MONGODB_PORT: "27017"
+      MONGODB_USERNAME: "root"
+      MONGODB_PASSWORD: "123456"
+      MONGODB_DATABASE: "code-review"
+      WEBHOOK_URL: "URL_ADDRESS"
+      TZ: Asia/Shanghai
+    restart: always
+```
+
+```
 
 ## 服务端使用教程
 
